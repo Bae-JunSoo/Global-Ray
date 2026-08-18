@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200">
+    <title>회원가입 - GlobalRay</title>
+    <link rel="stylesheet" th:href="@{/css/Base.css}">
+    <link rel="stylesheet" th:href="@{/css/Components.css}">
+    <link rel="stylesheet" th:href="@{/css/Auth.css}">
+    <link rel="stylesheet" th:href="@{/css/Responsive.css}">
+</head>
+<body class="signup-page">
+
+<div class="signup-wrap">
+    <div class="signup-card">
+        <a th:href="@{/main}" class="signup-logo">
+            <h1>Global Ray</h1>
+            <p>Democracy Dies in Darkness</p>
+        </a>
+
+        <div th:if="${errorMsg}" class="alert alert-error" th:text="${errorMsg}"></div>
+
+        <!-- id 추가: signup.js 에서 addEventListener('submit') 으로 onsubmit 인라인 대체 -->
+        <form id="signupForm" th:action="@{/auth/signup}" method="post">
+
+            <div class="signup-field">
+                <label>Name</label>
+                <input type="text" id="userName" name="userName" placeholder="이름" required>
+            </div>
+
+            <div class="signup-field">
+                <label>ID</label>
+                <div class="field-row">
+                    <input type="text" id="userId" name="userId" placeholder="아이디" required>
+                    <!-- data-action 으로 onclick 인라인 제거 -->
+                    <button type="button" id="checkIdBtn" class="field-btn">중복확인</button>
+                </div>
+                <span id="idMsg" class="field-msg"></span>
+            </div>
+
+            <div class="signup-field">
+                <label>Password</label>
+                <input type="password" id="userPw" name="userPw" placeholder="비밀번호 (8자 이상)" required>
+            </div>
+
+            <div class="signup-field">
+                <input type="password" id="confirmPw" placeholder="비밀번호 확인" required>
+            </div>
+
+            <div class="signup-field">
+                <label>E-mail</label>
+                <div class="field-row">
+                    <input type="email" id="userEmail" name="userEmail"
+                           placeholder="example@email.com" required>
+                    <!-- id 추가: signup.js 에서 버튼 참조용 -->
+                    <button type="button" id="sendCodeBtn" class="field-btn">전송</button>
+                </div>
+            </div>
+
+            <div class="signup-field">
+                <div class="field-row">
+                    <input type="text" id="authCode" name="authCode" placeholder="인증번호" required>
+                    <button type="button" id="verifyCodeBtn" class="field-btn">확인</button>
+                </div>
+                <span id="codeMsg" class="field-msg"></span>
+            </div>
+
+            <button type="submit" id="submitBtn" class="signup-btn" disabled>계정 생성</button>
+        </form>
+    </div>
+</div>
+
+<!-- main.js 먼저 로드: signup.js 가 showAlert() 등 공통 유틸 함수를 사용하기 때문 -->
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/signup.js}"></script>
+</body>
+</html>

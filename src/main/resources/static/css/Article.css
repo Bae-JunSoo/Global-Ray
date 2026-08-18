@@ -1,0 +1,52 @@
+/* ==============================================
+   ARTICLE.CSS — 기사 상세 페이지
+   ============================================== */
+
+.article-detail { max-width: 860px; }
+.article-header { margin-bottom: 24px; }
+.article-header h1 { font-size: 1.6rem; line-height: 1.4; margin: 10px 0; }
+.article-meta { font-size: 0.85rem; color: var(--text-sub); }
+.article-thumb {
+    width: 100%;
+    max-height: 420px;
+    object-fit: cover;
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+}
+
+/* AI 요약 / 짧은 요약 / 본문 영역 */
+.ai-summary, .ai-short, .article-desc {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+}
+.ai-summary  { border-left: 4px solid var(--primary); }
+.ai-short    { border-left: 4px solid #34a853; }
+.article-desc { border-left: 4px solid #fbbc05; }
+
+.ai-summary h3, .ai-short h3, .article-desc h3 {
+    font-size: 1rem;
+    margin-bottom: 12px;
+    font-weight: 700;
+}
+.ai-summary p, .ai-short p, .article-desc p {
+    font-size: 0.95rem;
+    line-height: 1.8;
+}
+/* th:utext 제거 후 \n 개행을 시각적으로 표현 (XSS 방지 목적으로 th:text 사용) */
+.ai-short p { white-space: pre-line; }
+
+/* AI 요약 준비 중 메시지 */
+.ai-pending {
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    color: #888;
+    text-align: center;
+    margin: 20px 0;
+    font-size: 0.9rem;
+}
+
+.article-actions { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200">
+    <title>GlobalRay</title>
+    <link rel="stylesheet" th:href="@{/css/Base.css}">
+    <link rel="stylesheet" th:href="@{/css/Header.css}">
+    <link rel="stylesheet" th:href="@{/css/News.css}">
+    <link rel="stylesheet" th:href="@{/css/Components.css}">
+    <link rel="stylesheet" th:href="@{/css/Responsive.css}">
+</head>
+<body>
+
+<!-- 메인 페이지 전용 헤더: layout fragment 재사용 (코드 중복 제거) -->
+<div th:replace="~{layout :: main-header}"></div>
+
+<main class="container">
+
+    <div class="news-main-list" th:if="${not #lists.isEmpty(newsList)}">
+        <div class="news-main-card" th:each="news : ${newsList}">
+            <div class="news-main-card-left">
+                <a th:href="@{/news/detail/{id}(id=${news.articleId})}">
+
+                    <!-- 제목: titleKor 우선, 없으면 원제목 -->
+                    <h2 class="news-main-title"
+                        th:text="${news.titleKor != null and !#strings.isEmpty(news.titleKor)}
+                                 ? ${news.titleKor}
+                                 : ${news.title}">
+                        Title
+                    </h2>
+
+                    <!-- 설명: summaryShort 우선, 없으면 description, 둘 다 없으면 AI 준비 중 -->
+                    <p class="news-main-desc"
+                       th:text="${news.summaryShort != null and !#strings.isEmpty(news.summaryShort)}
+                                ? ${news.summaryShort}
+                                : (${news.description != null and !#strings.isEmpty(news.description)}
+                                   ? ${news.description}
+                                   : 'AI 요약을 준비 중입니다.')">
+                        DESCRIPTION
+                    </p>
+
+                    <p class="news-main-author" th:text="${news.author}">AUTHOR</p>
+                </a>
+
+                <!-- 언론사 + 날짜 -->
+                <p class="news-main-source">
+                    <span th:text="${news.sourceName}">SOURCE_NAME</span>
+                    <!-- news-date 클래스로 인라인 style 대체 -->
+                    <span class="news-date"
+                          th:text="${#temporals.format(news.regDt, 'yyyy.MM.dd')}">날짜</span>
+                </p>
+            </div>
+            <div class="news-main-card-right">
+                <a th:href="@{/news/detail/{id}(id=${news.articleId})}">
+                    <img th:src="${news.thumbUrl}"
+                         th:alt="${news.title}"
+                         onerror="this.style.display='none'">
+                </a>
+                <!-- data-action="bookmark" 으로 onclick 인라인 제거 -->
+                <button sec:authorize="isAuthenticated()"
+                        class="bookmark-star"
+                        th:classappend="${news.bookmarked} ? ' active' : ''"
+                        th:data-url="${news.url}"
+                        data-action="bookmark">
+                    <span th:text="${news.bookmarked} ? '★' : '☆'">☆</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(newsList)}" class="empty-msg">
+        <p>현재 표시할 뉴스가 없습니다. 잠시 후 다시 확인해주세요.</p>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <div class="pagination" th:if="${totalPages > 1}">
+        <a th:if="${pageGroupStart > 0}"
+           th:href="@{/main(cat=${currentCat}, page=${pageGroupStart - 1})}"
+           class="page-btn">◀◀</a>
+        <a th:if="${currentPage > 0}"
+           th:href="@{/main(cat=${currentCat}, page=${currentPage - 1})}"
+           class="page-btn">◀</a>
+        <a th:each="i : ${#numbers.sequence(pageGroupStart, pageGroupEnd - 1)}"
+           th:href="@{/main(cat=${currentCat}, page=${i})}"
+           th:text="${i + 1}"
+           th:classappend="${i == currentPage} ? ' active' : ''"
+           class="page-num">1</a>
+        <a th:if="${currentPage < totalPages - 1}"
+           th:href="@{/main(cat=${currentCat}, page=${currentPage + 1})}"
+           class="page-btn">▶</a>
+        <a th:if="${pageGroupEnd < totalPages}"
+           th:href="@{/main(cat=${currentCat}, page=${pageGroupEnd})}"
+           class="page-btn">▶▶</a>
+    </div>
+
+</main>
+
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

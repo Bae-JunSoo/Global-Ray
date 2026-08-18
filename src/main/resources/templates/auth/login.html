@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200">
+    <title>로그인 - GlobalRay</title>
+    <link rel="stylesheet" th:href="@{/css/Base.css}">
+    <link rel="stylesheet" th:href="@{/css/Components.css}">
+    <link rel="stylesheet" th:href="@{/css/Auth.css}">
+    <link rel="stylesheet" th:href="@{/css/Responsive.css}">
+</head>
+<body class="login-page">
+
+<div class="login-wrap">
+    <!-- 좌측: 로고 영역 -->
+    <div class="login-left">
+        <a th:href="@{/main}" class="login-logo">
+            <h1>Global Ray</h1>
+            <p>Democracy Dies in Darkness</p>
+        </a>
+    </div>
+
+    <!-- 우측: 로그인 폼 카드 -->
+    <div class="login-right">
+        <div class="login-card">
+
+            <div th:if="${errorMsg}" class="alert alert-error" th:text="${errorMsg}"></div>
+            <div th:if="${param.signup}" class="alert alert-success">회원가입이 완료되었습니다.</div>
+
+            <form th:action="@{/auth/login}" method="post">
+                <div class="login-field">
+                    <label>ID</label>
+                    <input type="text" name="userId" placeholder="아이디 입력" required autofocus>
+                </div>
+                <div class="login-field">
+                    <label>Password</label>
+                    <input type="password" name="userPw" placeholder="비밀번호를 입력하세요" required>
+                </div>
+                <button type="submit" class="login-btn">로그인</button>
+            </form>
+
+            <div class="login-links">
+                <a th:href="@{/auth/find-id}">아이디 찾기</a>
+                <a th:href="@{/auth/find-pw}">비밀번호 찾기</a>
+            </div>
+
+            <div class="login-divider"><span>또는</span></div>
+
+            <!-- 외부 CDN URL 제거: 로컬 이미지 사용 (네트워크 의존성 제거, 개인정보 보호) -->
+            <!-- prompt=select_account 는 SecurityConfig authorizationRequestResolver 에서 처리 -->
+            <a th:href="@{/oauth2/authorization/google}" class="google-btn">
+                <img th:src="@{/images/google.svg}" alt="G">
+                Sign In with Google
+            </a>
+
+            <p class="login-signup">
+                계정이 없으신가요? <a th:href="@{/auth/signup}">회원가입</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

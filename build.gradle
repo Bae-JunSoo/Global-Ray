@@ -1,0 +1,72 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.0.5'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'kopo.poly'
+version = '0.0.1-SNAPSHOT'
+description = 'GlobalRay'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Spring Boot 기본
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // Thymeleaf + Security 통합
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+
+    // JPA + MariaDB
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+
+    // MongoDB
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+
+    // Google OAuth2
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+    // 메일 발송
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    // JSON 파싱 (ObjectMapper) - spring-boot-starter-web 의 전이 의존성이지만
+    // NewsCollectServiceImpl 에서 직접 주입받아 사용하므로 명시적으로 선언
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    // 뉴스 크롤링 (Jsoup)
+    implementation 'org.jsoup:jsoup:1.17.2'
+
+    // News API / Gemini API 호출용 HTTP Client
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

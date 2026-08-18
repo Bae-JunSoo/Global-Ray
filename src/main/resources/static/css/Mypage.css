@@ -1,0 +1,263 @@
+/* ==============================================
+   MYPAGE.CSS — 마이페이지 (리디자인)
+   ============================================== */
+
+/* ── 공통 레이아웃 ── */
+.mp-wrap {
+    max-width: 860px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+/* ── 프로필 카드 ── */
+.mp-profile-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    box-shadow: 0 1px 6px rgba(0,0,0,.06);
+}
+
+.mp-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #111;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    font-weight: 700;
+    font-family: Georgia, serif;
+    flex-shrink: 0;
+    letter-spacing: -1px;
+}
+
+.mp-profile-info { flex: 1; }
+
+.mp-profile-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+
+.mp-profile-sub {
+    font-size: 0.83rem;
+    color: var(--text-sub);
+    margin-bottom: 2px;
+}
+
+.mp-profile-badge {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 3px 12px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    color: var(--text-sub);
+    letter-spacing: 0.04em;
+}
+
+/* ── 통계 카드 3개 ── */
+.mp-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.mp-stat {
+    background: #f8f9fa;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 16px;
+    text-align: center;
+}
+
+.mp-stat-num {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 6px;
+    font-family: Georgia, serif;
+}
+
+.mp-stat-label {
+    font-size: 0.78rem;
+    color: var(--text-sub);
+    letter-spacing: 0.03em;
+}
+
+/* ── 2단 그리드 ── */
+.mp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* ── 공통 카드 ── */
+.mp-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+
+.mp-card-full {
+    grid-column: 1 / -1;
+}
+
+/* ── 카드 헤더 ── */
+.mp-card-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fafafa;
+}
+
+.mp-card-header i {
+    font-size: 15px;
+    color: var(--text-sub);
+}
+
+.mp-card-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-sub);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* ── 회원정보 행 ── */
+.mp-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 13px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.9rem;
+}
+
+.mp-info-row:last-child { border-bottom: none; }
+
+.mp-info-label {
+    color: var(--text-sub);
+    font-size: 0.83rem;
+}
+
+.mp-info-value {
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* ── 계정 관리 메뉴 ── */
+.mp-menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.9rem;
+    color: var(--text);
+    text-decoration: none;
+    transition: background 0.12s;
+    cursor: pointer;
+    background: none;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    width: 100%;
+    text-align: left;
+}
+
+.mp-menu-item:last-child { border-bottom: none; }
+.mp-menu-item:hover { background: #f8f9fa; }
+
+.mp-menu-item-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mp-menu-item-left i {
+    font-size: 16px;
+    color: var(--text-sub);
+    width: 20px;
+    text-align: center;
+}
+
+.mp-menu-arrow {
+    font-size: 13px;
+    color: #ccc;
+}
+
+.mp-menu-item.danger { color: var(--danger); }
+.mp-menu-item.danger i { color: var(--danger); }
+
+/* ── 최근 북마크 ── */
+.mp-bm-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.875rem;
+    color: var(--text);
+    text-decoration: none;
+    transition: background 0.12s;
+}
+
+.mp-bm-item:last-child { border-bottom: none; }
+.mp-bm-item:hover { background: #f8f9fa; }
+
+.mp-bm-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #bbb;
+    flex-shrink: 0;
+}
+
+.mp-bm-title {
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--text);
+}
+
+.mp-bm-cat {
+    font-size: 0.72rem;
+    color: var(--text-sub);
+    background: #f0f0f0;
+    padding: 2px 8px;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.mp-bm-empty {
+    padding: 32px 20px;
+    text-align: center;
+    color: var(--text-sub);
+    font-size: 0.88rem;
+}
+
+/* ── 반응형 ── */
+@media (max-width: 600px) {
+    .mp-stats { grid-template-columns: 1fr 1fr; }
+    .mp-stats .mp-stat:last-child { grid-column: 1 / -1; }
+    .mp-grid { grid-template-columns: 1fr; }
+    .mp-card-full { grid-column: 1; }
+    .mp-profile-card { flex-direction: column; text-align: center; }
+}
