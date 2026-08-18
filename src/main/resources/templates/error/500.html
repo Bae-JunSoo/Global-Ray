@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>서버 오류 - GlobalRay</title>
+    <link rel="stylesheet" th:href="@{/css/Base.css}">
+    <link rel="stylesheet" th:href="@{/css/Components.css}">
+    <link rel="stylesheet" th:href="@{/css/Auth.css}">
+    <link rel="stylesheet" th:href="@{/css/Responsive.css}">
+</head>
+<body class="auth-page">
+
+<div class="auth-container" style="text-align:center;">
+    <div style="font-size:5rem;">⚠️</div>
+    <h2>500 - 서버 오류가 발생했습니다</h2>
+    <p style="color:#666; margin:16px 0;">
+        잠시 후 다시 시도해주세요.
+    </p>
+    <a th:href="@{/main}" class="btn-primary">메인으로 돌아가기</a>
+</div>
+
+</body>
+</html>

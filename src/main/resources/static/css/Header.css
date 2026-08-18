@@ -1,0 +1,208 @@
+/* ==============================================
+   HEADER.CSS — 메인 헤더 · 서브 Navbar
+   ============================================== */
+
+/* ── 메인 헤더 (index 전용) ── */
+.header {
+    border-bottom: 1px solid var(--border);
+    background: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+.header-top {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
+    padding: 10px 40px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+}
+.header-auth {
+    position: absolute;
+    right: 40px;
+    display: flex;
+    gap: 12px;
+    font-size: 0.88rem;
+}
+.header-auth a { color: var(--text-sub); transition: color .15s; }
+.header-auth a:hover { color: var(--primary); }
+
+/* 검색창 */
+.header-search { display: flex; }
+.header-search input {
+    padding: 6px 16px;
+    border: 1px solid #aaa;
+    border-radius: 4px 0 0 4px;
+    outline: none;
+    width: 420px;
+    font-size: 0.9rem;
+}
+.header-search button {
+    padding: 6px 14px;
+    background: #f0f0f0;
+    color: var(--text);
+    border: 1px solid #aaa;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+}
+
+/* 로고 */
+.header-logo { text-align: center; padding: 20px 0 12px; }
+.header-logo a { color: var(--text); }
+.header-logo h1 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    font-family: Georgia, serif;
+}
+.logo-sub {
+    font-size: 0.85rem;
+    color: var(--text-sub);
+    margin-top: 4px;
+    font-style: italic;
+}
+
+/* 카테고리 네비 */
+.header-nav {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    border-bottom: 2px solid var(--text);
+    padding: 8px 0;
+}
+.header-nav a {
+    padding: 4px 36px;
+    font-size: 0.9rem;
+    color: var(--text);
+    border-right: 1px solid var(--border);
+    font-weight: 500;
+    transition: background .15s;
+}
+.header-nav a:last-child { border-right: none; }
+.header-nav a:hover, .header-nav a.active {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+/* ── 서브 Navbar (서브 페이지 공통) ── */
+.navbar {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+.navbar-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+.logo {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--primary);
+    white-space: nowrap;
+    font-family: Georgia, serif;
+}
+.nav-cats { display: flex; list-style: none; gap: 4px; flex-wrap: wrap; }
+.nav-cats a {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.88rem;
+    color: var(--text-sub);
+    transition: background .15s, color .15s;
+}
+.nav-cats a:hover, .nav-cats a.active { background: var(--primary); color: #fff; }
+
+/* 검색 폼 (서브 페이지) */
+.search-form { display: flex; margin-left: auto; }
+.search-form input {
+    padding: 7px 12px;
+    border: 1px solid var(--border);
+    border-radius: 20px 0 0 20px;
+    outline: none;
+    width: 200px;
+    font-size: 0.9rem;
+}
+.search-form button {
+    padding: 7px 14px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 0 20px 20px 0;
+    cursor: pointer;
+}
+
+/* 인증 링크 (서브 페이지) */
+.nav-auth { display: flex; gap: 12px; font-size: 0.88rem; white-space: nowrap; }
+.nav-auth a {
+    color: var(--text-sub);
+    padding: 5px 8px;
+    border-radius: 6px;
+    transition: background .15s;
+}
+.nav-auth a:hover { background: var(--bg); color: var(--primary); }
+
+/* ── 유저 메뉴 드롭다운 (메인 페이지) ── */
+.user-menu-wrap { position: relative; }
+
+/* 아이디님 버튼 */
+.user-menu-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.88rem;
+    color: var(--text-sub);
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background .15s;
+}
+.user-menu-btn:hover { background: var(--bg); }
+
+/* 드롭다운 메뉴 */
+.user-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,.12);
+    min-width: 160px;
+    z-index: 200;
+    overflow: hidden;
+}
+/* 드롭다운 열린 상태 */
+.user-dropdown.open { display: block; }
+
+/* 드롭다운 메뉴 항목 */
+.user-dropdown a,
+.dropdown-logout {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    color: #111;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background .15s;
+    border-bottom: 1px solid #f0f0f0;
+}
+.user-dropdown a:last-of-type { border-bottom: none; }
+.dropdown-logout { border-bottom: none; }
+.user-dropdown a:hover,
+.dropdown-logout:hover { background: #f8f9fa; }

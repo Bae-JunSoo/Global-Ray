@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200">
+    <title>비밀번호 변경 - GlobalRay</title>
+    <link rel="stylesheet" th:href="@{/css/Base.css}">
+    <link rel="stylesheet" th:href="@{/css/Header.css}">
+    <link rel="stylesheet" th:href="@{/css/Auth.css}">
+    <link rel="stylesheet" th:href="@{/css/Components.css}">
+    <link rel="stylesheet" th:href="@{/css/Responsive.css}">
+</head>
+<body>
+
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<main class="container">
+    <h2 class="section-title">비밀번호 변경</h2>
+
+    <div th:if="${errorMsg}" class="alert alert-error" th:text="${errorMsg}"></div>
+
+    <!-- Auth.css .auth-container 는 max-width 고정이므로 margin:0 auto 는 btn-cancel 과 별도로 처리 -->
+    <div class="auth-container" style="margin: 0 auto;">
+        <form th:action="@{/mypage/change-pw}" method="post" class="auth-form">
+
+            <div class="form-group">
+                <label for="currentPw">현재 비밀번호</label>
+                <input type="password" id="currentPw" name="currentPw"
+                       placeholder="현재 비밀번호" required>
+            </div>
+
+            <div class="form-group">
+                <label for="newPw">새 비밀번호</label>
+                <input type="password" id="newPw" name="newPw"
+                       placeholder="새 비밀번호 (8자 이상)" required>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPw">새 비밀번호 확인</label>
+                <input type="password" id="confirmPw" name="confirmPw"
+                       placeholder="새 비밀번호 재입력" required>
+            </div>
+
+            <button type="submit" class="btn-primary btn-full">변경하기</button>
+            <!-- btn-cancel 클래스로 인라인 style 대체 -->
+            <a th:href="@{/mypage}" class="btn-secondary btn-full btn-cancel">취소</a>
+        </form>
+    </div>
+</main>
+
+<!-- navbar의 toggleUserMenu()가 main.js에 있으므로 반드시 로드 -->
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

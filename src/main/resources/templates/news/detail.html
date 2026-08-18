@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200">
+    <title th:text="${article.titleKor != null and !#strings.isEmpty(article.titleKor)} ? ${article.titleKor} + ' - GlobalRay' : ${article.title} + ' - GlobalRay'">뉴스 상세</title>
+    <link rel="stylesheet" th:href="@{/css/Base.css}">
+    <link rel="stylesheet" th:href="@{/css/Header.css}">
+    <link rel="stylesheet" th:href="@{/css/News.css}">
+    <link rel="stylesheet" th:href="@{/css/Article.css}">
+    <link rel="stylesheet" th:href="@{/css/Components.css}">
+    <link rel="stylesheet" th:href="@{/css/Responsive.css}">
+</head>
+<body>
+
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<main class="container article-detail">
+    <div class="article-header">
+        <span class="cat-badge" th:text="${article.catType}">카테고리</span>
+
+        <h1 th:text="${article.titleKor != null and !#strings.isEmpty(article.titleKor)} ? ${article.titleKor} : ${article.title}">
+            기사 제목
+        </h1>
+
+        <div class="article-meta">
+            <span th:text="${article.sourceName}">언론사</span>
+            <span th:if="${article.author}" th:text="' · ' + ${article.author}">기자명</span>
+            <span th:text="' · ' + ${#temporals.format(article.regDt, 'yyyy.MM.dd HH:mm')}">날짜</span>
+        </div>
+
+        <!-- data-action="bookmark" 으로 onclick 인라인 제거 -->
+        <button sec:authorize="isAuthenticated()"
+                class="bookmark-btn-lg"
+                th:classappend="${article.bookmarked} ? ' active' : ''"
+                th:data-url="${article.url}"
+                data-action="bookmark">
+            <span th:text="${article.bookmarked} ? '★ 북마크됨' : '☆ 북마크'">☆ 북마크</span>
+        </button>
+    </div>
+
+    <img th:if="${article.thumbUrl}"
+         th:src="${article.thumbUrl}"
+         class="article-thumb"
+         onerror="this.style.display='none'">
+
+    <!-- #strings.isEmpty 로 null·빈문자열 모두 체크 (빈 문자열이면 th:if="${x}" 는 true 로 평가됨) -->
+    <div class="ai-summary" th:if="${not #strings.isEmpty(article.summaryKor)}">
+        <h3>AI 심화 요약</h3>
+        <p th:text="${article.summaryKor}">AI 요약 내용</p>
+    </div>
+
+    <!-- th:utext → th:text 로 XSS 방지
+         replace('• ','<br>• ') 제거 → Article.css .ai-short p { white-space:pre-line } 로 \n 개행 처리 -->
+    <div class="ai-short" th:if="${not #strings.isEmpty(article.summaryShort)}">
+        <h3>핵심 요약 (3줄)</h3>
+        <p th:text="${article.summaryShort}">3줄 요약</p>
+    </div>
+
+    <!-- null 과 빈문자열 모두 대비 -->
+    <div class="ai-pending" th:if="${article.summaryKor == null or #strings.isEmpty(article.summaryKor)}">
+        <p>AI 요약을 준비 중입니다. 잠시 후 다시 확인해주세요.</p>
+    </div>
+
+    <div class="article-actions">
+        <a th:href="${article.url}" target="_blank"
+           rel="noopener noreferrer" class="btn-primary">
+            원문 기사 보기
+        </a>
+        <a th:href="@{/main}" class="btn-secondary">← 목록으로</a>
+    </div>
+</main>
+
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

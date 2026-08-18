@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200">
+    <title>마이페이지 - GlobalRay</title>
+    <link rel="stylesheet" th:href="@{/css/Base.css}">
+    <link rel="stylesheet" th:href="@{/css/Header.css}">
+    <link rel="stylesheet" th:href="@{/css/Components.css}">
+    <link rel="stylesheet" th:href="@{/css/Mypage.css}">
+    <link rel="stylesheet" th:href="@{/css/Responsive.css}">
+    <!-- @latest → @3.29.0 으로 고정: 버전 미고정 시 배포 후 아이콘 변경/제거로 인한 UI 깨짐 위험 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.29.0/tabler-icons.min.css">
+</head>
+<body>
+
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<main>
+    <div class="mp-wrap">
+
+        <!-- 비밀번호 변경 성공 알림: Components.css .alert 에 margin-bottom:16px 이미 정의됨 -->
+        <div th:if="${param.pwChanged}" class="alert alert-success">
+            비밀번호가 성공적으로 변경되었습니다.
+        </div>
+
+        <!-- ① 프로필 카드 -->
+        <div class="mp-profile-card">
+            <div class="mp-avatar"
+                 th:text="${#strings.substring(user.userName, 0, 1)}">U</div>
+            <div class="mp-profile-info">
+                <div class="mp-profile-name" th:text="${user.userName}">사용자</div>
+                <div class="mp-profile-sub" th:text="'@' + ${user.userId}">@userId</div>
+                <div class="mp-profile-sub" th:text="${user.userEmail}">email@example.com</div>
+                <span class="mp-profile-badge"
+                      th:text="${user.socialType != null and !#strings.isEmpty(user.socialType)} ? 'Google 계정' : '일반 회원'">
+                    일반 회원
+                </span>
+            </div>
+        </div>
+
+        <!-- ② 통계 카드 -->
+        <div class="mp-stats">
+            <div class="mp-stat">
+                <div class="mp-stat-num" th:text="${bookmarkCount} ?: '0'">0</div>
+                <div class="mp-stat-label">북마크</div>
+            </div>
+            <div class="mp-stat">
+                <div class="mp-stat-num" th:text="${categoryCount} ?: '0'">0</div>
+                <div class="mp-stat-label">관심 카테고리</div>
+            </div>
+            <div class="mp-stat">
+                <div class="mp-stat-num" th:text="${joinDays} ?: '-'">-</div>
+                <div class="mp-stat-label">가입 경과일</div>
+            </div>
+        </div>
+
+        <!-- ③ 2단 그리드 -->
+        <div class="mp-grid">
+
+            <!-- 회원 정보 카드 -->
+            <div class="mp-card">
+                <div class="mp-card-header">
+                    <i class="ti ti-user" aria-hidden="true"></i>
+                    <span class="mp-card-title">회원 정보</span>
+                </div>
+                <div class="mp-info-row">
+                    <span class="mp-info-label">아이디</span>
+                    <span class="mp-info-value" th:text="${user.userId}">userId</span>
+                </div>
+                <div class="mp-info-row">
+                    <span class="mp-info-label">이름</span>
+                    <span class="mp-info-value" th:text="${user.userName}">이름</span>
+                </div>
+                <div class="mp-info-row">
+                    <span class="mp-info-label">이메일</span>
+                    <span class="mp-info-value" th:text="${user.userEmail}">email</span>
+                </div>
+                <div class="mp-info-row">
+                    <span class="mp-info-label">가입 유형</span>
+                    <span class="mp-info-value"
+                          th:text="${user.socialType != null and !#strings.isEmpty(user.socialType)} ? 'Google' : '일반'">
+                        일반
+                    </span>
+                </div>
+            </div>
+
+            <!-- 계정 관리 카드 -->
+            <div class="mp-card">
+                <div class="mp-card-header">
+                    <i class="ti ti-settings" aria-hidden="true"></i>
+                    <span class="mp-card-title">계정 관리</span>
+                </div>
+
+                <a th:href="@{/mypage/bookmark}" class="mp-menu-item">
+                    <div class="mp-menu-item-left">
+                        <i class="ti ti-bookmark" aria-hidden="true"></i>
+                        북마크 목록
+                    </div>
+                    <i class="ti ti-chevron-right mp-menu-arrow"></i>
+                </a>
+
+                <!-- 일반 유저: 비밀번호 변경 페이지로 이동 -->
+                <a th:if="${user.socialType == null or #strings.isEmpty(user.socialType)}"
+                   th:href="@{/mypage/change-pw}" class="mp-menu-item">
+                    <div class="mp-menu-item-left">
+                        <i class="ti ti-lock" aria-hidden="true"></i>
+                        비밀번호 변경
+                    </div>
+                    <i class="ti ti-chevron-right mp-menu-arrow"></i>
+                </a>
+
+                <!-- 소셜 유저: data-action + data-message 로 onclick 인라인 제거 -->
+                <button th:if="${user.socialType != null and !#strings.isEmpty(user.socialType)}"
+                        class="mp-menu-item"
+                        data-action="google-pw-info"
+                        data-message="Google 계정은 Google에서 비밀번호를 변경해주세요.">
+                    <div class="mp-menu-item-left">
+                        <i class="ti ti-lock" aria-hidden="true"></i>
+                        비밀번호 변경
+                    </div>
+                    <i class="ti ti-chevron-right mp-menu-arrow"></i>
+                </button>
+
+                <a th:href="@{/chatbot}" class="mp-menu-item">
+                    <div class="mp-menu-item-left">
+                        <i class="ti ti-message-circle" aria-hidden="true"></i>
+                        AI 챗봇
+                    </div>
+                    <i class="ti ti-chevron-right mp-menu-arrow"></i>
+                </a>
+
+                <!-- data-action="delete-account" 으로 onclick 인라인 제거 -->
+                <button class="mp-menu-item danger" data-action="delete-account">
+                    <div class="mp-menu-item-left">
+                        <i class="ti ti-trash" aria-hidden="true"></i>
+                        회원 탈퇴
+                    </div>
+                    <i class="ti ti-chevron-right mp-menu-arrow"></i>
+                </button>
+            </div>
+
+            <!-- 최근 북마크 (풀 너비) -->
+            <div class="mp-card mp-card-full">
+                <div class="mp-card-header">
+                    <i class="ti ti-star" aria-hidden="true"></i>
+                    <span class="mp-card-title">최근 북마크</span>
+                </div>
+
+                <th:block th:if="${recentBookmarks != null and !#lists.isEmpty(recentBookmarks)}">
+                    <a th:each="news : ${recentBookmarks}"
+                       th:href="@{/news/detail/{id}(id=${news.articleId})}"
+                       class="mp-bm-item">
+                        <div class="mp-bm-dot"></div>
+                        <span class="mp-bm-title"
+                              th:text="${news.titleKor != null and !#strings.isEmpty(news.titleKor)} ? ${news.titleKor} : ${news.title}">
+                            제목
+                        </span>
+                        <span class="mp-bm-cat" th:text="${news.catType}">카테고리</span>
+                    </a>
+                    <!-- bm-view-all 클래스로 인라인 style 대체 -->
+                    <a th:href="@{/mypage/bookmark}" class="mp-bm-item bm-view-all">
+                        전체 북마크 보기 →
+                    </a>
+                </th:block>
+
+                <div th:if="${recentBookmarks == null or #lists.isEmpty(recentBookmarks)}"
+                     class="mp-bm-empty">
+                    북마크한 기사가 없습니다.
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<!-- hidden 클래스로 style="display:none" 인라인 제거 -->
+<form id="deleteForm" th:action="@{/mypage/delete}" method="post" class="hidden"></form>
+
+<!-- 인라인 <script> 제거: confirmDelete() 로직은 main.js handleDeleteAccount() 로 이동 -->
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

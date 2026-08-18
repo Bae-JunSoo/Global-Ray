@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200">
+    <title th:text="${pageTitle} ?: 'GlobalRay'">GlobalRay</title>
+    <link rel="stylesheet" th:href="@{/css/Base.css}">
+    <link rel="stylesheet" th:href="@{/css/Header.css}">
+    <link rel="stylesheet" th:href="@{/css/Components.css}">
+    <link rel="stylesheet" th:href="@{/css/Responsive.css}">
+</head>
+<body>
+
+<!-- 공통 네비게이션 바 -->
+<!-- 인라인 <script> 제거: toggleUserMenu()는 main.js 에 정의되어 있으므로 중복 불필요 -->
+<nav th:fragment="navbar" class="navbar">
+    <div class="navbar-inner">
+        <a th:href="@{/main}" class="logo">GlobalRay</a>
+
+        <ul class="nav-cats">
+            <li th:each="cat : ${categories}">
+                <a th:href="@{/news/{c}(c=${cat})}"
+                   th:text="${cat}"
+                   th:classappend="${currentCat == cat} ? 'active' : ''">카테고리</a>
+            </li>
+        </ul>
+
+        <form th:action="@{/main/search}" method="get" class="search-form">
+            <input type="text" name="keyword" placeholder="뉴스 검색..." required>
+            <button type="submit">검색</button>
+        </form>
+
+        <div class="nav-auth">
+            <span sec:authorize="isAuthenticated()">
+                <div class="user-menu-wrap">
+                    <!-- data-action으로 toggleUserMenu 호출 (onclick 인라인 제거) -->
+                    <button class="user-menu-btn" data-action="toggle-user-menu">
+                        <span th:text="${userName}"></span> 님
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <a th:href="@{/mypage}">마이페이지</a>
+                        <a th:href="@{/chatbot}">Chat Bot</a>
+                        <form th:action="@{/auth/logout}" method="post">
+                            <button type="submit" class="dropdown-logout">로그아웃</button>
+                        </form>
+                    </div>
+                </div>
+            </span>
+            <span sec:authorize="isAnonymous()">
+                <a th:href="@{/auth/login}">로그인</a>
+                <a th:href="@{/auth/signup}">회원가입</a>
+            </span>
+        </div>
+    </div>
+</nav>
+
+<!-- 메인 페이지 전용 헤더 fragment -->
+<!-- main/index.html 에서 th:replace="~{layout :: main-header}" 로 사용 -->
+<header th:fragment="main-header" class="header">
+    <div class="header-top">
+        <div class="header-search">
+            <form th:action="@{/main/search}" method="get">
+                <input type="text" name="keyword" placeholder="검색...">
+                <button type="submit">검색</button>
+            </form>
+        </div>
+
+        <div class="header-auth">
+            <span sec:authorize="isAnonymous()">
+                <a th:href="@{/auth/login}">로그인</a>
+                <a th:href="@{/auth/signup}">회원가입</a>
+            </span>
+            <span sec:authorize="isAuthenticated()">
+                <div class="user-menu-wrap">
+                    <button class="user-menu-btn" data-action="toggle-user-menu">
+                        <span th:text="${userName}"></span> 님
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <a th:href="@{/mypage}">마이페이지</a>
+                        <a th:href="@{/chatbot}">Chat Bot</a>
+                        <form th:action="@{/auth/logout}" method="post">
+                            <button type="submit" class="dropdown-logout">로그아웃</button>
+                        </form>
+                    </div>
+                </div>
+            </span>
+        </div>
+    </div>
+
+    <div class="header-logo">
+        <a th:href="@{/main}">
+            <h1>Global Ray</h1>
+            <p class="logo-sub">Democracy Dies in Darkness</p>
+        </a>
+    </div>
+
+    <nav class="header-nav">
+        <a th:href="@{/main}"
+           th:classappend="${currentCat == null or #strings.isEmpty(currentCat)} ? ' active' : ''">전체</a>
+        <a th:each="cat : ${categories}"
+           th:href="@{/main(cat=${cat})}"
+           th:text="${cat}"
+           th:classappend="${currentCat == cat} ? ' active' : ''">카테고리</a>
+    </nav>
+</header>
+
+</body>
+</html>

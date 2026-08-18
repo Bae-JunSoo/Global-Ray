@@ -1,0 +1,280 @@
+/* ==============================================
+   COMPONENTS.CSS — 버튼 · 북마크 · 알림 · Divider · Empty
+   ============================================== */
+
+/* ── 레이아웃 공통 ── */
+.container { max-width: 1200px; margin: 32px auto; padding: 0 20px; }
+
+/* 섹션 제목: 하단 테두리 검정 */
+.section-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #111;
+}
+.subtitle { color: var(--text-sub); margin-bottom: 24px; font-size: 0.95rem; }
+
+/* ── 버튼 ── */
+/* 주요 버튼: 검정 배경 흰 글씨 */
+.btn-primary {
+    display: inline-block;
+    padding: 10px 24px;
+    background: #111;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: background .15s;
+    text-align: center;
+}
+.btn-primary:hover { background: #333; color: #fff; }
+
+/* 보조 버튼: 흰 배경 검정 테두리 */
+.btn-secondary {
+    display: inline-block;
+    padding: 10px 24px;
+    background: #fff;
+    color: #111;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background .15s;
+    text-align: center;
+}
+.btn-secondary:hover { background: #f5f5f5; }
+/* 전체 너비 버튼 */
+.btn-full { width: 100%; display: block; }
+
+/* ── 북마크 버튼 (리스트용 - 우측 상단 동그란 버튼) ── */
+.bookmark-btn {
+    background: rgba(255,255,255,.85);
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    width: 36px; height: 36px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.bookmark-btn:hover { background: #f5f5f5; border-color: #999; }
+/* 북마크 활성화 상태 */
+.bookmark-btn.active { background: #111; color: #fff; border-color: #111; }
+
+/* 북마크 버튼 (상세 페이지용 - 큰 버튼) */
+.bookmark-btn-lg {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border: 2px solid #ddd;
+    border-radius: 20px;
+    background: #fff;
+    font-size: 0.95rem;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all .15s;
+}
+.bookmark-btn-lg:hover { background: #f5f5f5; border-color: #999; }
+/* 북마크 활성화 상태 */
+.bookmark-btn-lg.active { background: #111; color: #fff; border-color: #111; }
+
+/* ── 알림 박스 ── */
+.alert { padding: 12px 16px; border-radius: 8px; font-size: 0.9rem; margin-bottom: 16px; }
+/* 에러 알림 */
+.alert-error   { background: #fce8e6; color: #c62828; border: 1px solid #ef9a9a; }
+/* 성공 알림 */
+.alert-success { background: #e6f4ea; color: #1b5e20; border: 1px solid #a5d6a7; }
+
+/* ── 구분선 ── */
+.divider { text-align: center; margin: 18px 0; position: relative; color: #aaa; font-size: 0.83rem; }
+.divider::before, .divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 43%;
+    height: 1px;
+    background: #e0e0e0;
+}
+.divider::before { left: 0; }
+.divider::after  { right: 0; }
+
+/* ── 빈 상태 메시지 ── */
+.empty-msg { text-align: center; padding: 60px 20px; color: #666; }
+.empty-msg p { font-size: 1.05rem; margin-bottom: 20px; }
+
+/* ── 페이지네이션 ── */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin: 32px 0;
+    flex-wrap: wrap;
+}
+/* 이전/다음 버튼 */
+.page-btn {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+    color: #111;
+    font-size: 0.9rem;
+    transition: all .15s;
+}
+.page-btn:hover { background: #111; color: #fff; border-color: #111; }
+
+/* 페이지 번호 */
+.page-num {
+    padding: 8px 13px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #fff;
+    color: #111;
+    font-size: 0.9rem;
+    transition: all .15s;
+}
+.page-num:hover { background: #f5f5f5; }
+/* 현재 페이지 */
+.page-num.active {
+    background: #111;
+    color: #fff;
+    border-color: #111;
+    font-weight: 700;
+}
+
+/* ── 뉴스 리스트 우측 영역 (썸네일 + 북마크) ── */
+.list-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* ── 검색 결과 헤더 ── */
+.search-result-header {
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 16px 0;
+    border-bottom: 2px solid #111;
+    margin-bottom: 16px;
+    color: #111;
+}
+/* 검색 결과 건수 */
+.search-count {
+    font-size: 0.85rem;
+    color: #888;
+    font-weight: 400;
+    margin-left: 6px;
+}
+
+/* ── 마이페이지 레이아웃 ── */
+.mypage-wrap { max-width: 600px; margin: 40px auto; }
+
+/* 마이페이지 각 섹션 */
+.mypage-section {
+    margin-bottom: 40px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 32px;
+}
+/* 섹션 제목 */
+.mypage-section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* 회원 정보 테이블 */
+.info-table { width: 100%; border-collapse: collapse; }
+.info-table tr { border-bottom: 1px solid #f0f0f0; }
+.info-table th {
+    width: 100px;
+    padding: 12px 0;
+    font-size: 0.85rem;
+    color: #888;
+    font-weight: 500;
+    text-align: left;
+}
+.info-table td { padding: 12px 0; font-size: 0.95rem; color: #111; }
+
+/* 계정 관리 메뉴 */
+.mypage-menu { list-style: none; padding: 0; margin: 0; }
+.mypage-menu li { border-bottom: 1px solid #f0f0f0; }
+.mypage-menu li a {
+    display: block;
+    padding: 14px 0;
+    font-size: 0.95rem;
+    color: #111;
+    transition: color .15s;
+}
+.mypage-menu li a:hover { color: #555; }
+/* 회원 탈퇴 링크 강조 */
+.mypage-menu li a.text-danger { color: #c00; }
+.mypage-menu li a.text-danger:hover { color: #900; }
+
+/* ── 유틸리티 클래스 ── */
+/* display:none 인라인 스타일 대체 */
+.hidden { display: none !important; }
+
+/* 날짜 텍스트 (메인 뉴스 카드) */
+.news-date { color: #999; margin-left: 8px; }
+
+/* 북마크 전체보기 링크 (마이페이지) */
+.bm-view-all {
+    justify-content: center;
+    color: var(--text-sub);
+    font-size: 0.83rem;
+}
+
+/* 취소 버튼 (비밀번호 변경 등) */
+.btn-cancel {
+    margin-top: 10px;
+    display: block;
+    text-align: center;
+}
+
+/* ── 커스텀 모달 (native alert/confirm 대체) ── */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+.modal-box {
+    background: #fff;
+    border-radius: 10px;
+    padding: 28px 32px;
+    min-width: 300px;
+    max-width: 420px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, .18);
+    text-align: center;
+}
+.modal-msg {
+    font-size: 0.97rem;
+    line-height: 1.6;
+    color: #111;
+    margin-bottom: 20px;
+    white-space: pre-line;
+}
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+.modal-actions .btn-primary,
+.modal-actions .btn-secondary {
+    min-width: 80px;
+}

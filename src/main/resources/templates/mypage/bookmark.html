@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200">
+    <title>북마크 - GlobalRay</title>
+    <link rel="stylesheet" th:href="@{/css/Base.css}">
+    <link rel="stylesheet" th:href="@{/css/Header.css}">
+    <link rel="stylesheet" th:href="@{/css/News.css}">
+    <link rel="stylesheet" th:href="@{/css/Components.css}">
+    <link rel="stylesheet" th:href="@{/css/Responsive.css}">
+</head>
+<body>
+
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<main class="container">
+    <h2 class="section-title"> 내 북마크</h2>
+
+    <div class="news-list" th:if="${not #lists.isEmpty(bookmarks)}">
+        <div class="news-list-item" th:each="news : ${bookmarks}">
+
+            <img th:src="${news.thumbUrl} ?: '/images/no-image.png'"
+                 class="list-thumb"
+                 onerror="this.src='/images/no-image.png'">
+
+            <div class="list-body">
+                <a th:href="@{/news/detail/{id}(id=${news.articleId})}">
+                    <h3 th:text="${news.titleKor != null and !#strings.isEmpty(news.titleKor)}
+                                 ? ${news.titleKor} : ${news.title}">제목</h3>
+                </a>
+                <p th:text="${news.summaryShort != null and !#strings.isEmpty(news.summaryShort)}
+                             ? ${news.summaryShort}
+                             : (${news.description != null and !#strings.isEmpty(news.description)}
+                                ? ${news.description}
+                                : 'AI 요약을 준비 중입니다.')">설명</p>
+                <div class="list-meta">
+                    <span th:text="${news.sourceName}">언론사</span> ·
+                    <span class="cat-badge" th:text="${news.catType}">카테고리</span>
+                </div>
+            </div>
+
+            <!-- data-action="bookmark" 으로 onclick 인라인 제거 -->
+            <button class="bookmark-btn active"
+                    th:data-url="${news.url}"
+                    data-action="bookmark">
+                <span>★</span>
+            </button>
+        </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(bookmarks)}" class="empty-msg">
+        <p>북마크한 기사가 없습니다.</p>
+        <a th:href="@{/main}" class="btn-primary">뉴스 보러 가기</a>
+    </div>
+</main>
+
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200">
+    <title>AI 챗봇 - GlobalRay</title>
+    <link rel="stylesheet" th:href="@{/css/Base.css}">
+    <link rel="stylesheet" th:href="@{/css/Header.css}">
+    <link rel="stylesheet" th:href="@{/css/Components.css}">
+    <link rel="stylesheet" th:href="@{/css/Responsive.css}">
+    <link rel="stylesheet" th:href="@{/css/chatbot.css}">
+</head>
+<body>
+
+<nav th:replace="~{layout :: navbar}"></nav>
+
+<main class="container">
+    <h2 class="section-title">AI 뉴스 챗봇</h2>
+    <p class="subtitle">궁금한 뉴스나 시사 이슈를 질문해보세요!</p>
+
+    <div class="chat-wrap">
+        <div class="chat-messages" id="chatMessages">
+            <div class="msg bot">
+                <div class="bubble">
+                    안녕하세요! 저는 GlobalRay AI 챗봇입니다.
+                    뉴스나 시사 관련 질문을 자유롭게 해주세요 😊
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <textarea id="questionInput"
+                      placeholder="질문을 입력하세요... (Enter: 전송, Shift+Enter: 줄바꿈)"
+                      rows="2"></textarea>
+            <!-- onclick 제거: chatbot.js 에서 sendBtn.addEventListener('click', sendQuestion) 으로 처리 -->
+            <button id="sendBtn">전송 ↑</button>
+        </div>
+
+        <div class="chat-examples">
+            <span>예시 질문:</span>
+            <!-- data-action + data-question 으로 onclick 인라인 제거 -->
+            <button data-action="fill-question" data-question="최근 AI 기술 트렌드는?">최근 AI 기술 트렌드는?</button>
+            <button data-action="fill-question" data-question="미국 금리 인상이 한국 경제에 미치는 영향은?">금리 인상 영향은?</button>
+            <button data-action="fill-question" data-question="스포츠 최근 이슈 알려줘">스포츠 최근 이슈</button>
+        </div>
+    </div>
+</main>
+
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/chatbot.js}"></script>
+</body>
+</html>
