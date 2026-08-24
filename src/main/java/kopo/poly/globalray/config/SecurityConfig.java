@@ -98,7 +98,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/", "/main/**", "/news/**",
-                                "/auth/**", "/css/**", "/js/**", "/images/**"
+                                "/auth/**", "/css/**", "/js/**", "/images/**",
+                                "/login/oauth2/**", "/oauth2/**"
                         ).permitAll()
                         .requestMatchers(
                                 "/mypage/**", "/bookmark/**", "/chatbot/**"
@@ -135,19 +136,24 @@ public class SecurityConfig {
                                     && "authorization_request_not_found".equals(oae.getError().getErrorCode());
 
                             if (isStateConsumed) {
-                                // 브라우저가 OAuth2 콜백 URL을 동시에 두 번 요청하는 현상
                                 // exec-A(성공): state 소진 → 새 세션 발급(Set-Cookie) → 302 /main
                                 // exec-B(실패): state 없음 → 이 핸들러 진입
-                                // exec-B가 즉시 302 /main 하면 브라우저가 Set-Cookie 받기 전에 구 세션으로 /main 접근 → 비인증
-                                // Thread.sleep은 서버 스레드를 블로킹하여 타이밍이 불안정하므로,
-                                // 클라이언트 측 meta refresh로 1초 지연 → 브라우저가 Set-Cookie를 먼저 처리한 뒤 /main 이동
-                                log.warn("OAuth2 중복 콜백 감지: 클라이언트 1초 대기 후 /main 이동");
+                                // meta refresh 고정 딜레이는 브라우저·서버 속도에 따라 불안정
+                                // → JS가 /auth/api/login-check를 500ms마다 폴링 → 인증 확인 즉시 /main 이동
+                                log.warn("OAuth2 중복 콜백 감지: JS 폴링으로 로그인 완료 대기");
                                 response.setContentType("text/html;charset=UTF-8");
                                 response.setStatus(200);
                                 response.getWriter().write(
-                                        "<html><head>" +
-                                        "<meta http-equiv='refresh' content='1;url=/main'>" +
-                                        "</head><body></body></html>"
+                                        "<html><head><script>" +
+                                        "function check(){" +
+                                        "fetch('/auth/api/login-check')" +
+                                        ".then(function(r){return r.json();})" +
+                                        ".then(function(d){" +
+                                        "if(d.loggedIn){location.href='/main';}" +
+                                        "else{setTimeout(check,500);}" +
+                                        "}).catch(function(){setTimeout(check,500);});}" +
+                                        "setTimeout(check,300);" +
+                                        "</script></head><body></body></html>"
                                 );
                                 return;
                             }
