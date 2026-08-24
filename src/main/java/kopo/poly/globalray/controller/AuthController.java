@@ -8,6 +8,7 @@ import kopo.poly.globalray.util.CmmUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -88,6 +89,14 @@ public class AuthController {
             model.addAttribute("errorMsg", e.getMessage());
             return "auth/signup";
         }
+    }
+
+    // OAuth2 중복 콜백 처리 후 로그인 완료 여부 폴링용 API
+    @GetMapping("/api/login-check")
+    @ResponseBody
+    public ResponseEntity<Map<String, Boolean>> loginCheck(Authentication authentication) {
+        boolean loggedIn = authentication != null && authentication.isAuthenticated();
+        return ResponseEntity.ok(Map.of("loggedIn", loggedIn));
     }
 
     // 아이디 중복 확인 (Ajax)
