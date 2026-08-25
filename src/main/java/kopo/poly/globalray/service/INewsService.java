@@ -26,4 +26,10 @@ public interface INewsService {
 
     // 메인 페이지용 페이징 조회
     Page<NewsDto> getMainNews(int page, String loginUserId);
+
+    // 조회수 +1 (상세 페이지 진입 시 호출)
+    void increaseViewCount(String articleId);
+
+    // 조회수 TOP 10 기사 조회
+    List<NewsDto> getTop10ByViewCount();
 }

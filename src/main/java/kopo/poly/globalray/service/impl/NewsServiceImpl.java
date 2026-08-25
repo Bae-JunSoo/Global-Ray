@@ -171,6 +171,23 @@ public class NewsServiceImpl implements INewsService {
                 .map(a -> toDto(a, bookmarkedUrls));
     }
 
+    // 조회수 +1: Repository의 $inc 원자적 연산 위임
+    @Override
+    public void increaseViewCount(String articleId) {
+        newsArticleRepository.increaseViewCount(articleId);
+    }
+
+    // 조회수 TOP 10: 비로그인 사용자도 볼 수 있으므로 북마크 Set 빈 값으로 처리
+    @Override
+    @Transactional(readOnly = true)
+    public List<NewsDto> getTop10ByViewCount() {
+        return newsArticleRepository
+                .findTop10ByTitleKorIsNotNullOrderByViewCountDesc()
+                .stream()
+                .map(a -> toDto(a, new HashSet<>()))
+                .collect(Collectors.toList());
+    }
+
     // Entity → DTO 변환 (북마크 Set 으로 비교 → N+1 쿼리 방지)
     private NewsDto toDto(NewsArticleEntity article, Set<String> bookmarkedUrls) {
         boolean bookmarked = bookmarkedUrls.contains(article.getUrl());
@@ -188,6 +205,7 @@ public class NewsServiceImpl implements INewsService {
                 .thumbUrl(article.getThumbUrl())
                 .regDt(article.getRegDt())
                 .bookmarked(bookmarked)
+                .viewCount(article.getViewCount())
                 .build();
     }
 }
