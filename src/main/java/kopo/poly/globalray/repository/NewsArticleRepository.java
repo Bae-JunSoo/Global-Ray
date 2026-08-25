@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.repository.Update;
 
 public interface NewsArticleRepository extends MongoRepository<NewsArticleEntity, String> {
 
@@ -39,4 +40,13 @@ public interface NewsArticleRepository extends MongoRepository<NewsArticleEntity
 
     // 상세 페이지 on-demand 심화요약 대상 조회
     List<NewsArticleEntity> findBySummaryKorIsNullAndTitleKorIsNotNullAndContentFullIsNotNull();
+
+    // 조회수 +1 원자적 증가 ($inc 연산 - 동시 요청에도 데이터 정합성 보장)
+    @Query("{ '_id': ?0 }")
+    @Update("{ '$inc': { 'VIEW_COUNT': 1 } }")
+    void increaseViewCount(String articleId);
+
+    // 조회수 TOP 10 (번역 완료 기사만, VIEW_COUNT 내림차순)
+    @Query(value = "{ 'TITLE_KOR': { $exists: true, $ne: null } }", sort = "{ 'VIEW_COUNT': -1 }")
+    List<NewsArticleEntity> findTop10ByTitleKorIsNotNullOrderByViewCountDesc();
 }

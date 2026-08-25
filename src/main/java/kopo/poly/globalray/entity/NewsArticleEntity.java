@@ -53,7 +53,11 @@ public class NewsArticleEntity {
     @Field("REG_DT")
     private LocalDateTime regDt;
 
-    // Setter 대신 의미 있는 메서드로 변경
+    // 조회수: 문서 생성 시 0으로 초기화, null-safe 조회를 위해 기본값 설정
+    @Builder.Default
+    @Field("VIEW_COUNT")
+    private long viewCount = 0L;
+
     public void updateSummaryKor(String summaryKor) {
         this.summaryKor = summaryKor;
     }
