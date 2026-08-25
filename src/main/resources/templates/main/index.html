@@ -16,7 +16,23 @@
 <!-- 메인 페이지 전용 헤더: layout fragment 재사용 (코드 중복 제거) -->
 <div th:replace="~{layout :: main-header}"></div>
 
-<main class="container">
+<main class="container" style="display:flex; gap:24px; align-items:flex-start;">
+
+    <!-- 조회수 TOP 10 사이드바 -->
+    <aside style="min-width:220px; max-width:220px; background:#f8f9fa; border-radius:8px; padding:16px; position:sticky; top:80px;">
+        <h3 style="font-size:15px; font-weight:700; margin-bottom:12px; color:#333;">🔥 조회수 TOP 10</h3>
+        <ol style="padding-left:18px; margin:0;">
+            <li th:each="news, stat : ${top10News}" style="margin-bottom:8px; font-size:13px; line-height:1.4;">
+                <a th:href="@{/news/detail/{id}(id=${news.articleId})}"
+                   th:text="${news.titleKor != null and !#strings.isEmpty(news.titleKor)} ? ${news.titleKor} : ${news.title}"
+                   style="color:#333; text-decoration:none; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+                </a>
+                <span th:text="${news.viewCount} + '회'" style="color:#999; font-size:11px;"></span>
+            </li>
+        </ol>
+    </aside>
+
+    <div style="flex:1; min-width:0;">
 
     <div class="news-main-list" th:if="${not #lists.isEmpty(newsList)}">
         <div class="news-main-card" th:each="news : ${newsList}">
@@ -76,6 +92,7 @@
 
     <!-- 페이지네이션 -->
     <div class="pagination" th:if="${totalPages > 1}">
+
         <a th:if="${pageGroupStart > 0}"
            th:href="@{/main(cat=${currentCat}, page=${pageGroupStart - 1})}"
            class="page-btn">◀◀</a>
@@ -94,6 +111,8 @@
            th:href="@{/main(cat=${currentCat}, page=${pageGroupEnd})}"
            class="page-btn">▶▶</a>
     </div>
+
+    </div><!-- flex 컨텐츠 영역 끝 -->
 
 </main>
 
