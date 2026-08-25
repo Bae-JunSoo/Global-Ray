@@ -76,6 +76,9 @@ public class NewsController {
 
         String userId = SecurityUtil.extractUserId(userDetails, oAuth2User);
 
+        // 조회수 +1 (상세 페이지 진입 시점에 카운트 — 봇/크롤러 필터링은 향후 개선 여지)
+        newsService.increaseViewCount(CmmUtil.nvl(articleId));
+
         // 요약이 없으면 Service 내부에서 자동 생성 후 반환
         NewsDto article = newsService.getArticleById(CmmUtil.nvl(articleId), userId);
 
