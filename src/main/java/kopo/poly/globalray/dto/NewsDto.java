@@ -21,6 +21,7 @@ public class NewsDto {
     private String thumbUrl;
     private LocalDateTime regDt;
     private boolean bookmarked;
+    private long viewCount;
 
     // 페이징 정보
     private int currentPage;
