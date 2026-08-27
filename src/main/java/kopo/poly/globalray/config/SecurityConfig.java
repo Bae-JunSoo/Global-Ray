@@ -2,6 +2,7 @@ package kopo.poly.globalray.config;
 
 import kopo.poly.globalray.security.CustomOAuth2UserService;
 import kopo.poly.globalray.security.CustomUserDetailsService;
+import kopo.poly.globalray.security.LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -24,12 +25,14 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 @Slf4j
 @Configuration
 @EnableWebSecurity
+@org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final CustomOAuth2UserService oAuth2UserService;
     private final ClientRegistrationRepository clientRegistrationRepository;
+    private final LoginSuccessHandler loginSuccessHandler;
 
     // - SHA-256은 연산 속도가 빠르기 때문에 brute-force/레인보우 테이블 공격에 취약
     // - BCrypt는 의도적으로 연산 비용이 높고, 호출마다 자동으로 랜덤 salt를 생성하여 저장
@@ -101,6 +104,7 @@ public class SecurityConfig {
                                 "/auth/**", "/css/**", "/js/**", "/images/**",
                                 "/login/oauth2/**", "/oauth2/**"
                         ).permitAll()
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers(
                                 "/mypage/**", "/bookmark/**", "/chatbot/**"
                         ).authenticated()
@@ -109,10 +113,10 @@ public class SecurityConfig {
                 // 일반 로그인 설정
                 .formLogin(form -> form
                         .loginPage("/auth/login")
-                        .loginProcessingUrl("/auth/login") // 이 URL의 POST 요청을 Spring Security가 처리
-                        .usernameParameter("userId")       // 폼 필드명 매핑
+                        .loginProcessingUrl("/auth/login")
+                        .usernameParameter("userId")
                         .passwordParameter("userPw")
-                        .defaultSuccessUrl("/main", true) //성공시 main let's go
+                        .successHandler(loginSuccessHandler)
                         .failureUrl("/auth/login?error=true")
                         .permitAll()
                 )
@@ -128,7 +132,7 @@ public class SecurityConfig {
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/auth/login")
                         .userInfoEndpoint(info -> info.userService(oAuth2UserService))
-                        .defaultSuccessUrl("/main", true)
+                        .successHandler(loginSuccessHandler)
                         // OAuth2 실패 핸들러
                         .failureHandler((request, response, exception) -> {
                             boolean isStateConsumed =

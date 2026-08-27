@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200">
+    <title>관리자 대시보드 - GlobalRay</title>
+    <link rel="stylesheet" th:href="@{/css/Base.css}">
+    <link rel="stylesheet" th:href="@{/css/Header.css}">
+    <link rel="stylesheet" th:href="@{/css/Components.css}">
+    <style>
+        .admin-wrap { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .admin-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 32px; color: #222; }
+        .stat-row { display: flex; gap: 20px; margin-bottom: 40px; }
+        .stat-card {
+            flex: 1; background: #fff; border: 1px solid var(--border);
+            border-radius: 8px; padding: 24px; text-align: center;
+        }
+        .stat-card .num { font-size: 2.4rem; font-weight: 700; color: var(--primary); }
+        .stat-card .label { font-size: 0.9rem; color: var(--text-sub); margin-top: 6px; }
+        .section { margin-bottom: 48px; }
+        .section h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--primary); }
+        table { width: 100%; border-collapse: collapse; background: #fff; }
+        th { background: #f5f5f5; padding: 10px 14px; font-size: 0.85rem; text-align: left; border-bottom: 1px solid var(--border); }
+        td { padding: 10px 14px; font-size: 0.85rem; border-bottom: 1px solid #f0f0f0; }
+        tr:hover td { background: #fafafa; }
+        .badge-google { background: #e8f0fe; color: #1967d2; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; }
+        .badge-normal { background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+<div th:replace="~{layout :: main-header}"></div>
+
+<div class="admin-wrap">
+    <h2 class="admin-title">관리자 대시보드</h2>
+
+    <div class="stat-row">
+        <div class="stat-card">
+            <div class="num" th:text="${userCount}">0</div>
+            <div class="label">전체 회원 수</div>
+        </div>
+        <div class="stat-card">
+            <div class="num" th:text="${loginCount}">0</div>
+            <div class="label">최근 로그인 이력</div>
+        </div>
+        <div class="stat-card">
+            <div class="num" th:text="${viewCount}">0</div>
+            <div class="label">최근 기사 조회</div>
+        </div>
+    </div>
+
+    <!-- 회원 목록 -->
+    <div class="section">
+        <h3>회원 목록</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>아이디</th>
+                <th>이름</th>
+                <th>이메일</th>
+                <th>가입 유형</th>
+                <th>가입일</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="u : ${users}">
+                <td th:text="${u.userId}"></td>
+                <td th:text="${u.userName}"></td>
+                <td th:text="${u.userEmail}"></td>
+                <td>
+                    <span th:if="${u.socialType != null}" class="badge-google" th:text="${u.socialType}"></span>
+                    <span th:if="${u.socialType == null}" class="badge-normal">일반</span>
+                </td>
+                <td th:text="${#temporals.format(u.regDt, 'yyyy.MM.dd HH:mm')}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 로그인 이력 -->
+    <div class="section">
+        <h3>최근 로그인 이력 (최대 100건)</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>아이디</th>
+                <th>이름</th>
+                <th>로그인 유형</th>
+                <th>IP</th>
+                <th>로그인 시각</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="h : ${loginHistory}">
+                <td th:text="${h.userId}"></td>
+                <td th:text="${h.userName}"></td>
+                <td>
+                    <span th:if="${h.loginType == 'GOOGLE'}" class="badge-google">Google</span>
+                    <span th:if="${h.loginType == 'NORMAL'}" class="badge-normal">일반</span>
+                </td>
+                <td th:text="${h.ipAddress}"></td>
+                <td th:text="${#temporals.format(h.loginDt, 'yyyy.MM.dd HH:mm:ss')}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 기사 조회 이력 -->
+    <div class="section">
+        <h3>최근 기사 조회 이력 (최대 100건)</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>아이디</th>
+                <th>기사 제목</th>
+                <th>조회 시각</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="v : ${viewHistory}">
+                <td th:text="${v.userId}"></td>
+                <td th:text="${v.title}"></td>
+                <td th:text="${#temporals.format(v.viewDt, 'yyyy.MM.dd HH:mm:ss')}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
