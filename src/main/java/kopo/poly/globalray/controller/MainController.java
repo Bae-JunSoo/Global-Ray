@@ -60,8 +60,6 @@ public class MainController {
         model.addAttribute("userId", userId);
         model.addAttribute("pageGroupStart", pageGroupStart);
         model.addAttribute("pageGroupEnd", pageGroupEnd);
-        model.addAttribute("top10News", newsService.getTop10ByViewCount());
-
         return "main/index";
     }
 

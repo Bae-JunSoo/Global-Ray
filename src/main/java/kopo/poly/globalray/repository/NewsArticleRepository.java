@@ -47,6 +47,7 @@ public interface NewsArticleRepository extends MongoRepository<NewsArticleEntity
     void increaseViewCount(String articleId);
 
     // 조회수 TOP 10 (번역 완료 기사만, VIEW_COUNT 내림차순)
+    // @Query 사용 시 메서드명의 Top10 제한이 무시되므로 Pageable로 10개 제한
     @Query(value = "{ 'TITLE_KOR': { $exists: true, $ne: null } }", sort = "{ 'VIEW_COUNT': -1 }")
-    List<NewsArticleEntity> findTop10ByTitleKorIsNotNullOrderByViewCountDesc();
+    List<NewsArticleEntity> findTop10ByTitleKorIsNotNullOrderByViewCountDesc(Pageable pageable);
 }

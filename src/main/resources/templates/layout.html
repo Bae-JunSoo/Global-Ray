@@ -110,6 +110,8 @@
            th:href="@{/main(cat=${cat})}"
            th:text="${cat}"
            th:classappend="${currentCat == cat} ? ' active' : ''">카테고리</a>
+        <a th:href="@{/news/top10}" style="color:#e74c3c; font-weight:700;">🔥 TOP 10</a>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}" style="color:#7c3aed; font-weight:700;">관리자</a>
     </nav>
 </header>
 
