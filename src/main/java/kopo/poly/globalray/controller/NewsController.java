@@ -1,6 +1,8 @@
 package kopo.poly.globalray.controller;
 
 import kopo.poly.globalray.dto.NewsDto;
+import kopo.poly.globalray.entity.ViewHistoryEntity;
+import kopo.poly.globalray.repository.ViewHistoryRepository;
 import kopo.poly.globalray.service.IBookmarkService;
 import kopo.poly.globalray.service.INewsService;
 import kopo.poly.globalray.util.CmmUtil;
@@ -16,6 +18,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +49,17 @@ public class NewsController {
 
     private final INewsService newsService;
     private final IBookmarkService bookmarkService;
+    private final ViewHistoryRepository viewHistoryRepository;
+
+    // 조회수 TOP 10 전용 페이지
+    @GetMapping("/news/top10")
+    public String top10(@AuthenticationPrincipal UserDetails userDetails,
+                        @AuthenticationPrincipal OAuth2User oAuth2User,
+                        Model model) {
+        String userId = SecurityUtil.extractUserId(userDetails, oAuth2User);
+        model.addAttribute("top10News", newsService.getTop10ByViewCount());
+        return "news/top10";
+    }
 
     // 카테고리별 뉴스 목록
     @GetMapping("/news/{catType}")
@@ -76,11 +90,21 @@ public class NewsController {
 
         String userId = SecurityUtil.extractUserId(userDetails, oAuth2User);
 
-        // 조회수 +1 (상세 페이지 진입 시점에 카운트 — 봇/크롤러 필터링은 향후 개선 여지)
+        // 조회수 +1
         newsService.increaseViewCount(CmmUtil.nvl(articleId));
 
         // 요약이 없으면 Service 내부에서 자동 생성 후 반환
         NewsDto article = newsService.getArticleById(CmmUtil.nvl(articleId), userId);
+
+        // 조회 이력 저장 (비회원도 포함, userId 빈 문자열이면 "비회원")
+        if (article != null) {
+            viewHistoryRepository.save(ViewHistoryEntity.builder()
+                    .userId((userId == null || userId.isBlank()) ? "비회원" : userId)
+                    .articleId(articleId)
+                    .title(article.getTitleKor() != null ? article.getTitleKor() : article.getTitle())
+                    .viewDt(LocalDateTime.now())
+                    .build());
+        }
 
         model.addAttribute("article", article);
 

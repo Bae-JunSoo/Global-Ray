@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1200">
-    <title>GlobalRay</title>
+    <title>조회수 TOP 10 - GlobalRay</title>
     <link rel="stylesheet" th:href="@{/css/Base.css}">
     <link rel="stylesheet" th:href="@{/css/Header.css}">
     <link rel="stylesheet" th:href="@{/css/News.css}">
@@ -13,19 +13,19 @@
 </head>
 <body>
 
-<!-- 메인 페이지 전용 헤더: layout fragment 재사용 (코드 중복 제거) -->
 <div th:replace="~{layout :: main-header}"></div>
 
 <main class="container">
 
-    <div>
+    <h2 style="font-size:1.4rem; font-weight:700; margin-bottom:24px; color:#333;">
+        🔥 조회수 TOP 10
+    </h2>
 
-    <div class="news-main-list" th:if="${not #lists.isEmpty(newsList)}">
-        <div class="news-main-card" th:each="news : ${newsList}">
+    <div class="news-main-list" th:if="${not #lists.isEmpty(top10News)}">
+        <div class="news-main-card" th:each="news, stat : ${top10News}">
             <div class="news-main-card-left">
                 <a th:href="@{/news/detail/{id}(id=${news.articleId})}">
 
-                    <!-- 제목: titleKor 우선, 없으면 원제목 -->
                     <h2 class="news-main-title"
                         th:text="${news.titleKor != null and !#strings.isEmpty(news.titleKor)}
                                  ? ${news.titleKor}
@@ -33,7 +33,6 @@
                         Title
                     </h2>
 
-                    <!-- 설명: summaryShort 우선, 없으면 description, 둘 다 없으면 AI 준비 중 -->
                     <p class="news-main-desc"
                        th:text="${news.summaryShort != null and !#strings.isEmpty(news.summaryShort)}
                                 ? ${news.summaryShort}
@@ -46,7 +45,6 @@
                     <p class="news-main-author" th:text="${news.author}">AUTHOR</p>
                 </a>
 
-                <!-- 언론사 + 날짜 + 조회수 -->
                 <p class="news-main-source">
                     <span th:text="${news.sourceName}">SOURCE_NAME</span>
                     <span class="news-date"
@@ -60,7 +58,6 @@
                          th:alt="${news.title}"
                          onerror="this.style.display='none'">
                 </a>
-                <!-- data-action="bookmark" 으로 onclick 인라인 제거 -->
                 <button sec:authorize="isAuthenticated()"
                         class="bookmark-star"
                         th:classappend="${news.bookmarked} ? ' active' : ''"
@@ -72,33 +69,9 @@
         </div>
     </div>
 
-    <div th:if="${#lists.isEmpty(newsList)}" class="empty-msg">
-        <p>현재 표시할 뉴스가 없습니다. 잠시 후 다시 확인해주세요.</p>
+    <div th:if="${#lists.isEmpty(top10News)}" class="empty-msg">
+        <p>조회수 데이터가 없습니다. 기사를 읽으면 TOP 10이 채워집니다.</p>
     </div>
-
-    <!-- 페이지네이션 -->
-    <div class="pagination" th:if="${totalPages > 1}">
-
-        <a th:if="${pageGroupStart > 0}"
-           th:href="@{/main(cat=${currentCat}, page=${pageGroupStart - 1})}"
-           class="page-btn">◀◀</a>
-        <a th:if="${currentPage > 0}"
-           th:href="@{/main(cat=${currentCat}, page=${currentPage - 1})}"
-           class="page-btn">◀</a>
-        <a th:each="i : ${#numbers.sequence(pageGroupStart, pageGroupEnd - 1)}"
-           th:href="@{/main(cat=${currentCat}, page=${i})}"
-           th:text="${i + 1}"
-           th:classappend="${i == currentPage} ? ' active' : ''"
-           class="page-num">1</a>
-        <a th:if="${currentPage < totalPages - 1}"
-           th:href="@{/main(cat=${currentCat}, page=${currentPage + 1})}"
-           class="page-btn">▶</a>
-        <a th:if="${pageGroupEnd < totalPages}"
-           th:href="@{/main(cat=${currentCat}, page=${pageGroupEnd})}"
-           class="page-btn">▶▶</a>
-    </div>
-
-    </div><!-- flex 컨텐츠 영역 끝 -->
 
 </main>
 

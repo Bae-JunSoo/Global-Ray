@@ -182,7 +182,7 @@ public class NewsServiceImpl implements INewsService {
     @Transactional(readOnly = true)
     public List<NewsDto> getTop10ByViewCount() {
         return newsArticleRepository
-                .findTop10ByTitleKorIsNotNullOrderByViewCountDesc()
+                .findTop10ByTitleKorIsNotNullOrderByViewCountDesc(PageRequest.of(0, 10))
                 .stream()
                 .map(a -> toDto(a, new HashSet<>()))
                 .collect(Collectors.toList());

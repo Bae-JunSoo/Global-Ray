@@ -77,12 +77,21 @@
 }
 .news-main-author { font-size: 0.8rem; color: #999; margin-bottom: 6px; }
 .news-main-source {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-size: 0.78rem;
     color: var(--text-sub);
     font-weight: 600;
     border-top: 1px solid var(--border);
     padding-top: 8px;
     margin-top: auto;
+}
+.news-view-count {
+    margin-left: auto;
+    color: #333;
+    font-size: 0.72rem;
+    font-weight: 500;
 }
 .news-main-card-right {
     width: 280px;
