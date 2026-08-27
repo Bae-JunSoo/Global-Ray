@@ -22,6 +22,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserInfoRepository userInfoRepository;
 
+    @org.springframework.beans.factory.annotation.Value("${app.admin-email}")
+    private String adminEmail;
+
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
         OAuth2User oAuth2User = super.loadUser(userRequest);
@@ -57,8 +60,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         Map<String, Object> enrichedAttributes = new HashMap<>(attributes);
         enrichedAttributes.put("customUserId", user.getUserId());
 
+        String role = adminEmail.equalsIgnoreCase(email) ? "ROLE_ADMIN" : "ROLE_USER";
+
         return new DefaultOAuth2User(
-                List.of(new SimpleGrantedAuthority("ROLE_USER")),
+                List.of(new SimpleGrantedAuthority(role)),
                 enrichedAttributes,
                 "name"
         );

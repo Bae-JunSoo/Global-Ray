@@ -19,6 +19,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserInfoRepository userInfoRepository;
 
+    @org.springframework.beans.factory.annotation.Value("${app.admin-email}")
+    private String adminEmail;
+
     /**
      * Spring Security 로그인 처리 시 호출 → DB 에서 사용자 조회
      * 비밀번호 비교는 SecurityConfig 의 DaoAuthenticationProvider + BCryptPasswordEncoder 가 처리
@@ -35,11 +38,12 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         log.info("로그인 시도 userId : {}", userId);
 
-        // CustomUserDetails: userName 을 세션에 담아두어 이후 요청에서 DB 조회 없이 사용
+        String role = adminEmail.equalsIgnoreCase(user.getUserEmail()) ? "ROLE_ADMIN" : "ROLE_USER";
+
         return new CustomUserDetails(
                 user.getUserId(),
                 user.getUserPw(),
-                List.of(new SimpleGrantedAuthority("ROLE_USER")),
+                List.of(new SimpleGrantedAuthority(role)),
                 user.getUserName()
         );
     }
