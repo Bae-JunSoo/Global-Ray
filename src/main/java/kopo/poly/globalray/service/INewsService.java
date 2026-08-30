@@ -32,4 +32,7 @@ public interface INewsService {
 
     // 조회수 TOP 10 기사 조회
     List<NewsDto> getTop10ByViewCount();
+
+    // 기사 조회 이력 저장
+    void saveViewHistory(String userId, String articleId, String title);
 }
