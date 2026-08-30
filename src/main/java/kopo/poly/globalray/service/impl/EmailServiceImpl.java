@@ -3,6 +3,7 @@ package kopo.poly.globalray.service.impl;
 import kopo.poly.globalray.service.IEmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,9 @@ public class EmailServiceImpl implements IEmailService {
 
     private final JavaMailSender mailSender;
 
+    @Value("${spring.mail.username}")
+    private String senderEmail;
+
     @Override
     public void sendAuthCode(String toEmail, String authCode) throws Exception {
         log.info("이메일 인증코드 발송 시작 : {}", toEmail);
@@ -24,7 +28,7 @@ public class EmailServiceImpl implements IEmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom("ssc9023@naver.com");
+            helper.setFrom(senderEmail);
             helper.setTo(toEmail);
             helper.setSubject("[GlobalRay] 이메일 인증코드");
             helper.setText("""

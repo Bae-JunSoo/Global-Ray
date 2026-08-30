@@ -35,6 +35,9 @@ public interface NewsArticleRepository extends MongoRepository<NewsArticleEntity
     // URL로 단건 조회 (북마크 기사 조회용)
     Optional<NewsArticleEntity> findByUrl(String url);
 
+    // URL 목록으로 일괄 조회 (N+1 방지)
+    List<NewsArticleEntity> findByUrlIn(List<String> urls);
+
     // URL 중복 체크 (수집 시 기존 기사 스킵용)
     boolean existsByUrl(String url);
 

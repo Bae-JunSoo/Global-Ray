@@ -1,5 +1,6 @@
 package kopo.poly.globalray.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import java.time.LocalDateTime;
 
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
 public class UserInfoDto {
 
     private String userId;
+    @JsonIgnore
     private String userPw;      // 서비스 내부 전달용 (응답 시 노출 금지)
     private String userName;
     private String userEmail;

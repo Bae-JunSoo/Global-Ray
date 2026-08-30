@@ -18,9 +18,9 @@ public class BookmarkServiceImpl implements IBookmarkService {
     @Override
     @Transactional
     public boolean toggleBookmark(String userId, String articleUrl) {
-        if (userBookmarkRepository.existsByUserIdAndArticleUrl(userId, articleUrl)) {
-            userBookmarkRepository.findByUserIdAndArticleUrl(userId, articleUrl)
-                    .ifPresent(userBookmarkRepository::delete);
+        var existing = userBookmarkRepository.findByUserIdAndArticleUrl(userId, articleUrl);
+        if (existing.isPresent()) {
+            userBookmarkRepository.delete(existing.get());
             log.info("북마크 해제 - userId: {}", userId);
             return false;
         } else {
