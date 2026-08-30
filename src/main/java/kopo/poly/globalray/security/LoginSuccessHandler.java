@@ -2,12 +2,10 @@ package kopo.poly.globalray.security;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kopo.poly.globalray.entity.LoginHistoryEntity;
-import kopo.poly.globalray.repository.LoginHistoryRepository;
+import kopo.poly.globalray.service.IAdminService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -19,7 +17,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
-    private final LoginHistoryRepository loginHistoryRepository;
+    private final IAdminService adminService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -42,18 +40,14 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         }
 
         String ip = request.getHeader("X-Forwarded-For");
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
         if (ip == null || ip.isBlank()) {
             ip = request.getRemoteAddr();
         }
 
-        loginHistoryRepository.save(LoginHistoryEntity.builder()
-                .userId(userId)
-                .userName(userName)
-                .ipAddress(ip)
-                .loginType(loginType)
-                .build());
-
-        log.info("로그인 이력 저장: {} ({})", userId, loginType);
+        adminService.saveLoginHistory(userId, userName, ip, loginType);
         response.sendRedirect("/main");
     }
 }
