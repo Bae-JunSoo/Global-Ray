@@ -60,11 +60,10 @@ public class EncryptUtil {
 
             byte byteData[] = sh.digest();
 
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
 
-            for (int i = 0; i < byteData.length; i++) {
-                sb.append(Integer.toString((byteData[i] & 0xff) + 0x100, 16).substring(1));
-
+            for (byte b : byteData) {
+                sb.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
             }
 
             res = sb.toString();

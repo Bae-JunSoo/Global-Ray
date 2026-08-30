@@ -121,10 +121,17 @@ public class MyPageController {
     @PostMapping("/delete")
     public String deleteUser(Principal principal,
                              HttpServletRequest request,
-                             HttpServletResponse response) {
-        userInfoService.deleteUser(SecurityUtil.extractUserId(principal));
-        new SecurityContextLogoutHandler().logout(request, response,
-                SecurityContextHolder.getContext().getAuthentication());
-        return "redirect:/main";
+                             HttpServletResponse response,
+                             Model model) {
+        try {
+            userInfoService.deleteUser(SecurityUtil.extractUserId(principal));
+            new SecurityContextLogoutHandler().logout(request, response,
+                    SecurityContextHolder.getContext().getAuthentication());
+            return "redirect:/main";
+        } catch (Exception e) {
+            log.error("회원 탈퇴 실패 : {}", e.getMessage(), e);
+            model.addAttribute("errorMsg", "회원 탈퇴 처리 중 오류가 발생했습니다.");
+            return "mypage/index";
+        }
     }
 }

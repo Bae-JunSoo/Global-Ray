@@ -3,8 +3,10 @@ package kopo.poly.globalray.service.impl;
 import kopo.poly.globalray.dto.NewsDto;
 import kopo.poly.globalray.entity.NewsArticleEntity;
 import kopo.poly.globalray.entity.UserBookmarkEntity;
+import kopo.poly.globalray.entity.ViewHistoryEntity;
 import kopo.poly.globalray.repository.NewsArticleRepository;
 import kopo.poly.globalray.repository.UserBookmarkRepository;
+import kopo.poly.globalray.repository.ViewHistoryRepository;
 import kopo.poly.globalray.service.IGeminiService;
 import kopo.poly.globalray.service.INewsService;
 import kopo.poly.globalray.util.CmmUtil;
@@ -16,9 +18,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Sort;
+
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -28,17 +35,12 @@ public class NewsServiceImpl implements INewsService {
 
     private final NewsArticleRepository newsArticleRepository;
     private final UserBookmarkRepository userBookmarkRepository;
-
-    /**
-     * [추가] IGeminiService 주입
-     * on-demand 심화요약 생성 로직을 NewsController 에서 이 Service 로 이동했기 때문
-     * Controller 는 DB/외부 API 에 직접 의존하면 안 됨 (계층 구조 위반)
-     */
+    private final ViewHistoryRepository viewHistoryRepository;
     private final IGeminiService geminiService;
 
     // 유저의 북마크 URL 목록을 한 번에 조회 (N+1 방지)
     @Transactional(readOnly = true)
-    protected Set<String> getBookmarkedUrls(String loginUserId) {
+    private Set<String> getBookmarkedUrls(String loginUserId) {
         if (loginUserId == null) return new HashSet<>();
         return userBookmarkRepository.findByUserIdOrderByRegDtDesc(loginUserId)
                 .stream()
@@ -128,8 +130,7 @@ public class NewsServiceImpl implements INewsService {
         Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
         return newsArticleRepository.findByTitleKorContainingOrderByRegDtDesc(
                         keyword,
-                        org.springframework.data.domain.Sort.by(
-                                org.springframework.data.domain.Sort.Direction.DESC, "regDt"))
+                        Sort.by(Sort.Direction.DESC, "regDt"))
                 .stream()
                 .map(a -> toDto(a, bookmarkedUrls))
                 .collect(Collectors.toList());
@@ -138,16 +139,23 @@ public class NewsServiceImpl implements INewsService {
     @Override
     @Transactional(readOnly = true)
     public List<NewsDto> getBookmarkedNews(String userId) {
-        Set<String> bookmarkedUrls = getBookmarkedUrls(userId);
-        return userBookmarkRepository.findByUserIdOrderByRegDtDesc(userId)
+        List<UserBookmarkEntity> bookmarks = userBookmarkRepository.findByUserIdOrderByRegDtDesc(userId);
+        if (bookmarks.isEmpty()) return List.of();
+
+        List<String> urls = bookmarks.stream()
+                .map(UserBookmarkEntity::getArticleUrl)
+                .collect(Collectors.toList());
+
+        // 북마크 URL 목록으로 한 번에 조회 (N+1 쿼리 방지)
+        Map<String, NewsArticleEntity> articleMap = newsArticleRepository.findByUrlIn(urls)
                 .stream()
-                .map(bm -> {
-                    NewsArticleEntity article = newsArticleRepository
-                            .findByUrl(bm.getArticleUrl()).orElse(null);
-                    if (article == null) return null;
-                    return toDto(article, bookmarkedUrls);
-                })
-                .filter(dto -> dto != null)
+                .collect(Collectors.toMap(NewsArticleEntity::getUrl, Function.identity()));
+
+        Set<String> bookmarkedUrlSet = new HashSet<>(urls);
+        return bookmarks.stream()
+                .map(bm -> articleMap.get(bm.getArticleUrl()))
+                .filter(article -> article != null)
+                .map(article -> toDto(article, bookmarkedUrlSet))
                 .collect(Collectors.toList());
     }
 
@@ -173,8 +181,20 @@ public class NewsServiceImpl implements INewsService {
 
     // 조회수 +1: Repository의 $inc 원자적 연산 위임
     @Override
+    @Transactional
     public void increaseViewCount(String articleId) {
         newsArticleRepository.increaseViewCount(articleId);
+    }
+
+    @Override
+    @Transactional
+    public void saveViewHistory(String userId, String articleId, String title) {
+        viewHistoryRepository.save(ViewHistoryEntity.builder()
+                .userId((userId == null || userId.isBlank()) ? "비회원" : userId)
+                .articleId(articleId)
+                .title(title)
+                .viewDt(LocalDateTime.now())
+                .build());
     }
 
     // 조회수 TOP 10: 비로그인 사용자도 볼 수 있으므로 북마크 Set 빈 값으로 처리
