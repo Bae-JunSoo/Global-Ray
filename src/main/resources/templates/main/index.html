@@ -11,25 +11,25 @@
     <link rel="stylesheet" th:href="@{/css/Components.css}">
     <link rel="stylesheet" th:href="@{/css/Responsive.css}">
     <style>
-        .country-tabs {
+        .country-filter-wrap {
             display: flex;
-            gap: 8px;
+            align-items: center;
+            gap: 10px;
             margin-bottom: 20px;
-            flex-wrap: wrap;
         }
-        .country-tab {
-            padding: 6px 16px;
+        .country-select {
+            padding: 7px 36px 7px 14px;
             border: 1.5px solid #d1d5db;
-            border-radius: 20px;
-            background: #fff;
+            border-radius: 8px;
+            background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 12px center;
+            appearance: none;
             cursor: pointer;
             font-size: 14px;
             font-weight: 500;
             color: #374151;
-            transition: all 0.2s;
+            min-width: 130px;
         }
-        .country-tab:hover { border-color: #6366f1; color: #6366f1; }
-        .country-tab.active { background: #6366f1; border-color: #6366f1; color: #fff; }
+        .country-select:focus { outline: none; border-color: #6366f1; }
         .news-main-card.hidden { display: none; }
         .no-result-msg { text-align: center; padding: 60px 0; color: #9ca3af; font-size: 15px; display: none; }
     </style>
@@ -43,12 +43,14 @@
 
     <div>
 
-    <!-- 국가 필터 탭 -->
-    <div class="country-tabs">
-        <button class="country-tab active" data-filter="ALL">🌐 전체</button>
-        <button class="country-tab" data-filter="US">🇺🇸 미국</button>
-        <button class="country-tab" data-filter="EU">🇪🇺 유럽</button>
-        <button class="country-tab" data-filter="JP">🇯🇵 일본</button>
+    <!-- 국가 필터 드롭다운 -->
+    <div class="country-filter-wrap">
+        <select class="country-select" id="countrySelect">
+            <option value="ALL">🌐 전체</option>
+            <option value="US">🇺🇸 미국</option>
+            <option value="EU">🇪🇺 유럽</option>
+            <option value="JP">🇯🇵 일본</option>
+        </select>
     </div>
 
     <div class="news-main-list" th:if="${not #lists.isEmpty(newsList)}">
@@ -136,24 +138,19 @@
 
 <script th:src="@{/js/main.js}"></script>
 <script>
-    document.querySelectorAll('.country-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.country-tab').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
+    document.getElementById('countrySelect').addEventListener('change', function () {
+        const filter = this.value;
+        const items = document.querySelectorAll('.news-main-card');
+        let visibleCount = 0;
 
-            const filter = tab.dataset.filter;
-            const items = document.querySelectorAll('.news-main-card');
-            let visibleCount = 0;
-
-            items.forEach(item => {
-                const match = filter === 'ALL' || item.dataset.country === filter;
-                item.classList.toggle('hidden', !match);
-                if (match) visibleCount++;
-            });
-
-            document.getElementById('noResultMsg').style.display =
-                visibleCount === 0 ? 'block' : 'none';
+        items.forEach(item => {
+            const match = filter === 'ALL' || item.dataset.country === filter;
+            item.classList.toggle('hidden', !match);
+            if (match) visibleCount++;
         });
+
+        document.getElementById('noResultMsg').style.display =
+            visibleCount === 0 ? 'block' : 'none';
     });
 </script>
 </body>
