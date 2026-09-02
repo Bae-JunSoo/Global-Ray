@@ -43,17 +43,7 @@
 
     <div>
 
-    <!-- 국가 필터 드롭다운 -->
-    <div class="country-filter-wrap">
-        <select class="country-select" id="countrySelect">
-            <option value="ALL">🌐 전체</option>
-            <option value="US">🇺🇸 미국</option>
-            <option value="EU">🇪🇺 유럽</option>
-            <option value="JP">🇯🇵 일본</option>
-        </select>
-    </div>
-
-    <div class="news-main-list" th:if="${not #lists.isEmpty(newsList)}">
+<div class="news-main-list" th:if="${not #lists.isEmpty(newsList)}">
         <div class="news-main-card" th:each="news : ${newsList}" th:data-country="${news.country}">
             <div class="news-main-card-left">
                 <a th:href="@{/news/detail/{id}(id=${news.articleId})}">
@@ -138,20 +128,6 @@
 
 <script th:src="@{/js/main.js}"></script>
 <script>
-    document.getElementById('countrySelect').addEventListener('change', function () {
-        const filter = this.value;
-        const items = document.querySelectorAll('.news-main-card');
-        let visibleCount = 0;
-
-        items.forEach(item => {
-            const match = filter === 'ALL' || item.dataset.country === filter;
-            item.classList.toggle('hidden', !match);
-            if (match) visibleCount++;
-        });
-
-        document.getElementById('noResultMsg').style.display =
-            visibleCount === 0 ? 'block' : 'none';
-    });
 </script>
 </body>
 </html>
