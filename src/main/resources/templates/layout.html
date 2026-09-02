@@ -26,6 +26,16 @@
             </li>
         </ul>
 
+        <select id="countrySelectNav" onchange="applyCountryFilter(this.value)"
+                style="padding:5px 28px 5px 10px; border:1.5px solid #d1d5db;
+                       border-radius:6px; font-size:13px; font-weight:500; cursor:pointer;
+                       background:#fff; appearance:none; color:#374151; min-width:100px;">
+            <option value="ALL">🌐 전체</option>
+            <option value="US">🇺🇸 미국</option>
+            <option value="EU">🇪🇺 유럽</option>
+            <option value="JP">🇯🇵 일본</option>
+        </select>
+
         <form th:action="@{/main/search}" method="get" class="search-form">
             <input type="text" name="keyword" placeholder="뉴스 검색..." required>
             <button type="submit">검색</button>
@@ -113,16 +123,18 @@
         <a th:href="@{/news/top10}" style="color:#e74c3c; font-weight:700;">🔥 TOP 10</a>
         <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}" style="color:#7c3aed; font-weight:700;">관리자</a>
 
+    </nav>
+    <div style="display:flex; justify-content:flex-end; padding:6px 40px 0;">
         <select id="countrySelect" onchange="applyCountryFilter(this.value)"
-                style="margin-left:auto; padding:4px 28px 4px 10px; border:1.5px solid #d1d5db;
+                style="padding:5px 32px 5px 12px; border:1.5px solid #d1d5db;
                        border-radius:6px; font-size:13px; font-weight:500; cursor:pointer;
-                       background:#fff; appearance:none; color:#374151;">
+                       background:#fff; appearance:none; color:#374151; min-width:110px;">
             <option value="ALL">🌐 전체</option>
             <option value="US">🇺🇸 미국</option>
             <option value="EU">🇪🇺 유럽</option>
             <option value="JP">🇯🇵 일본</option>
         </select>
-    </nav>
+    </div>
     <script>
     function applyCountryFilter(filter) {
         const cards = document.querySelectorAll('.news-main-card, .news-list-item');
