@@ -22,6 +22,7 @@ public class NewsDto {
     private LocalDateTime regDt;
     private boolean bookmarked;
     private long viewCount;
+    private String country;     // US / EU / JP / ETC (sourceName 기반 분류)
 
     // 페이징 정보
     private int currentPage;

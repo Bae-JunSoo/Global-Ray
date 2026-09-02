@@ -10,6 +10,49 @@
     <link rel="stylesheet" th:href="@{/css/News.css}">
     <link rel="stylesheet" th:href="@{/css/Components.css}">
     <link rel="stylesheet" th:href="@{/css/Responsive.css}">
+    <style>
+        .country-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .country-tab {
+            padding: 6px 16px;
+            border: 1.5px solid #d1d5db;
+            border-radius: 20px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            transition: all 0.2s;
+        }
+        .country-tab:hover {
+            border-color: #6366f1;
+            color: #6366f1;
+        }
+        .country-tab.active {
+            background: #6366f1;
+            border-color: #6366f1;
+            color: #fff;
+        }
+        .news-list-item.hidden {
+            display: none;
+        }
+        .no-result-msg {
+            text-align: center;
+            padding: 60px 0;
+            color: #9ca3af;
+            font-size: 15px;
+            display: none;
+        }
+        .source-badge {
+            display: inline-block;
+            font-size: 12px;
+            color: #6b7280;
+        }
+    </style>
 </head>
 <body>
 
@@ -17,8 +60,18 @@
 
 <main class="container">
 
+    <!-- 국가 필터 탭 -->
+    <div class="country-tabs">
+        <button class="country-tab active" data-filter="ALL">🌐 전체</button>
+        <button class="country-tab" data-filter="US">🇺🇸 미국</button>
+        <button class="country-tab" data-filter="EU">🇪🇺 유럽</button>
+        <button class="country-tab" data-filter="JP">🇯🇵 일본</button>
+    </div>
+
     <div class="news-list" th:if="${not #lists.isEmpty(newsList)}">
-        <div class="news-list-item" th:each="news : ${newsList}">
+        <div class="news-list-item"
+             th:each="news : ${newsList}"
+             th:data-country="${news.country}">
 
             <div class="list-body">
                 <a th:href="@{/news/detail/{id}(id=${news.articleId})}">
@@ -31,7 +84,12 @@
                                 ? ${news.description}
                                 : 'AI 요약을 준비 중입니다.')">설명</p>
                 <div class="list-meta">
-                    <span th:text="${news.sourceName}">언론사</span>
+                    <span class="source-badge">
+                        <span th:text="${news.country == 'US'} ? '🇺🇸' :
+                                       (${news.country == 'EU'} ? '🇪🇺' :
+                                       (${news.country == 'JP'} ? '🇯🇵' : '🌐'))"></span>
+                        <span th:text="${news.sourceName}">언론사</span>
+                    </span>
                     <span> · </span>
                     <span th:text="${#temporals.format(news.regDt, 'yyyy.MM.dd HH:mm')}">날짜</span>
                 </div>
@@ -41,7 +99,6 @@
                 <img th:src="${news.thumbUrl} ?: '/images/no-image.png'"
                      class="list-thumb"
                      onerror="this.style.display='none'">
-                <!-- data-action="bookmark" 으로 onclick 인라인 제거 -->
                 <button sec:authorize="isAuthenticated()"
                         class="bookmark-btn"
                         th:classappend="${news.bookmarked} ? ' active' : ''"
@@ -56,8 +113,33 @@
     <div th:if="${#lists.isEmpty(newsList)}" class="empty-msg">
         <p>해당 카테고리의 뉴스가 없습니다.</p>
     </div>
+
+    <div class="no-result-msg" id="noResultMsg">
+        해당 국가의 뉴스가 없습니다.
+    </div>
 </main>
 
 <script th:src="@{/js/main.js}"></script>
+<script>
+    document.querySelectorAll('.country-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.country-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            const filter = tab.dataset.filter;
+            const items = document.querySelectorAll('.news-list-item');
+            let visibleCount = 0;
+
+            items.forEach(item => {
+                const match = filter === 'ALL' || item.dataset.country === filter;
+                item.classList.toggle('hidden', !match);
+                if (match) visibleCount++;
+            });
+
+            document.getElementById('noResultMsg').style.display =
+                visibleCount === 0 ? 'block' : 'none';
+        });
+    });
+</script>
 </body>
 </html>

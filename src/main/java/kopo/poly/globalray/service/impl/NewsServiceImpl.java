@@ -10,6 +10,7 @@ import kopo.poly.globalray.repository.ViewHistoryRepository;
 import kopo.poly.globalray.service.IGeminiService;
 import kopo.poly.globalray.service.INewsService;
 import kopo.poly.globalray.util.CmmUtil;
+import kopo.poly.globalray.util.CountryMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -226,6 +227,7 @@ public class NewsServiceImpl implements INewsService {
                 .regDt(article.getRegDt())
                 .bookmarked(bookmarked)
                 .viewCount(article.getViewCount())
+                .country(CountryMapper.getCountry(article.getSourceName()))
                 .build();
     }
 }
