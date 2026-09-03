@@ -104,21 +104,21 @@
     <div class="pagination" th:if="${totalPages > 1}">
 
         <a th:if="${pageGroupStart > 0}"
-           th:href="@{/main(cat=${currentCat}, page=${pageGroupStart - 1})}"
+           th:href="@{/main(cat=${currentCat}, page=${pageGroupStart - 1}, country=${currentCountry})}"
            class="page-btn">◀◀</a>
         <a th:if="${currentPage > 0}"
-           th:href="@{/main(cat=${currentCat}, page=${currentPage - 1})}"
+           th:href="@{/main(cat=${currentCat}, page=${currentPage - 1}, country=${currentCountry})}"
            class="page-btn">◀</a>
         <a th:each="i : ${#numbers.sequence(pageGroupStart, pageGroupEnd - 1)}"
-           th:href="@{/main(cat=${currentCat}, page=${i})}"
+           th:href="@{/main(cat=${currentCat}, page=${i}, country=${currentCountry})}"
            th:text="${i + 1}"
            th:classappend="${i == currentPage} ? ' active' : ''"
            class="page-num">1</a>
         <a th:if="${currentPage < totalPages - 1}"
-           th:href="@{/main(cat=${currentCat}, page=${currentPage + 1})}"
+           th:href="@{/main(cat=${currentCat}, page=${currentPage + 1}, country=${currentCountry})}"
            class="page-btn">▶</a>
         <a th:if="${pageGroupEnd < totalPages}"
-           th:href="@{/main(cat=${currentCat}, page=${pageGroupEnd})}"
+           th:href="@{/main(cat=${currentCat}, page=${pageGroupEnd}, country=${currentCountry})}"
            class="page-btn">▶▶</a>
     </div>
 
