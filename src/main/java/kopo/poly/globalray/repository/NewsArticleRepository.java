@@ -38,6 +38,14 @@ public interface NewsArticleRepository extends MongoRepository<NewsArticleEntity
     // URL 목록으로 일괄 조회 (N+1 방지)
     List<NewsArticleEntity> findByUrlIn(List<String> urls);
 
+    // 국가 필터: 전체 페이징 (sourceName 목록 기준)
+    @Query(value = "{ 'SOURCE_NAME': { $in: ?0 }, 'TITLE_KOR': { $exists: true, $ne: null } }", sort = "{ 'REG_DT': -1 }")
+    Page<NewsArticleEntity> findBySourceNameInAndTitleKorIsNotNull(List<String> sourceNames, Pageable pageable);
+
+    // 국가 필터: 카테고리별 페이징
+    @Query(value = "{ 'CAT_TYPE': ?0, 'SOURCE_NAME': { $in: ?1 }, 'TITLE_KOR': { $exists: true, $ne: null } }", sort = "{ 'REG_DT': -1 }")
+    Page<NewsArticleEntity> findByCatTypeAndSourceNameInAndTitleKorIsNotNull(String catType, List<String> sourceNames, Pageable pageable);
+
     // URL 중복 체크 (수집 시 기존 기사 스킵용)
     boolean existsByUrl(String url);
 

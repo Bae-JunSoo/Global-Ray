@@ -37,17 +37,23 @@ public class MainController {
     @GetMapping({"/", "/main"})
     public String main(@RequestParam(required = false, defaultValue = "") String cat,
                        @RequestParam(required = false, defaultValue = "0") int page,
+                       @RequestParam(required = false, defaultValue = "ALL") String country,
                        @AuthenticationPrincipal UserDetails userDetails,
                        @AuthenticationPrincipal OAuth2User oAuth2User,
                        Model model) {
 
         String userId = SecurityUtil.extractUserId(userDetails, oAuth2User);
+        boolean filtered = country != null && !country.isBlank() && !"ALL".equals(country);
 
         Page<NewsDto> newsPage;
         if (cat.isBlank()) {
-            newsPage = newsService.getMainNews(page, userId);
+            newsPage = filtered
+                    ? newsService.getMainNews(page, userId, country)
+                    : newsService.getMainNews(page, userId);
         } else {
-            newsPage = newsService.getNewsByCategory(cat, page, userId);
+            newsPage = filtered
+                    ? newsService.getNewsByCategory(cat, page, userId, country)
+                    : newsService.getNewsByCategory(cat, page, userId);
         }
 
         int pageGroupStart = (page / 10) * 10;
@@ -57,6 +63,7 @@ public class MainController {
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", newsPage.getTotalPages());
         model.addAttribute("currentCat", cat);
+        model.addAttribute("currentCountry", country);
         model.addAttribute("userId", userId);
         model.addAttribute("pageGroupStart", pageGroupStart);
         model.addAttribute("pageGroupEnd", pageGroupEnd);

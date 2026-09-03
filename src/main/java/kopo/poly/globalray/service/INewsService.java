@@ -24,8 +24,14 @@ public interface INewsService {
     // 카테고리별 페이징 조회
     Page<NewsDto> getNewsByCategory(String catType, int page, String loginUserId);
 
+    // 카테고리별 페이징 조회 (국가 필터)
+    Page<NewsDto> getNewsByCategory(String catType, int page, String loginUserId, String country);
+
     // 메인 페이지용 페이징 조회
     Page<NewsDto> getMainNews(int page, String loginUserId);
+
+    // 메인 페이지용 페이징 조회 (국가 필터)
+    Page<NewsDto> getMainNews(int page, String loginUserId, String country);
 
     // 조회수 +1 (상세 페이지 진입 시 호출)
     void increaseViewCount(String articleId);

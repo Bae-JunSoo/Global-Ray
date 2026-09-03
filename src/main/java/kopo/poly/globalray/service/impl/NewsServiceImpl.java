@@ -172,11 +172,33 @@ public class NewsServiceImpl implements INewsService {
 
     @Override
     @Transactional(readOnly = true)
+    public Page<NewsDto> getNewsByCategory(String catType, int page, String loginUserId, String country) {
+        Pageable pageable = PageRequest.of(page, 10);
+        Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
+        List<String> sourceNames = CountryMapper.getSourceNames(country);
+        return newsArticleRepository
+                .findByCatTypeAndSourceNameInAndTitleKorIsNotNull(catType, sourceNames, pageable)
+                .map(a -> toDto(a, bookmarkedUrls));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Page<NewsDto> getMainNews(int page, String loginUserId) {
         Pageable pageable = PageRequest.of(page, 10);
         Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
         return newsArticleRepository
                 .findByTitleKorIsNotNullOrderByRegDtDesc(pageable)
+                .map(a -> toDto(a, bookmarkedUrls));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<NewsDto> getMainNews(int page, String loginUserId, String country) {
+        Pageable pageable = PageRequest.of(page, 10);
+        Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
+        List<String> sourceNames = CountryMapper.getSourceNames(country);
+        return newsArticleRepository
+                .findBySourceNameInAndTitleKorIsNotNull(sourceNames, pageable)
                 .map(a -> toDto(a, bookmarkedUrls));
     }
 

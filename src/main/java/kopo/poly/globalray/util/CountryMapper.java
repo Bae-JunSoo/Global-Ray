@@ -1,5 +1,6 @@
 package kopo.poly.globalray.util;
 
+import java.util.List;
 import java.util.Map;
 
 public class CountryMapper {
@@ -35,6 +36,12 @@ public class CountryMapper {
             Map.entry("Medical News Today",        "US"),
             Map.entry("Science Daily",             "US"),
             Map.entry("National Geographic",       "US"),
+            Map.entry("Mashable",                  "US"),
+            Map.entry("Gizmodo.com",               "US"),
+            Map.entry("Space Daily",               "US"),
+            Map.entry("Investor's Business Daily", "US"),
+            Map.entry("Eatingwell.com",            "US"),
+            Map.entry("Verywellhealth.com",        "US"),
 
             // 유럽
             Map.entry("BBC News",                  "EU"),
@@ -58,8 +65,18 @@ public class CountryMapper {
             Map.entry("Asahi Shimbun",             "JP")
     );
 
+    // sourceName → 국가 코드
     public static String getCountry(String sourceName) {
         if (sourceName == null || sourceName.isBlank()) return "ETC";
-        return SOURCE_COUNTRY_MAP.getOrDefault(sourceName, "US"); // 기본값 미국 (대부분 영문 소스)
+        return SOURCE_COUNTRY_MAP.getOrDefault(sourceName, "US");
+    }
+
+    // 국가 코드 → sourceName 목록 (서버 필터링용)
+    public static List<String> getSourceNames(String country) {
+        if (country == null || country.isBlank() || "ALL".equals(country)) return List.of();
+        return SOURCE_COUNTRY_MAP.entrySet().stream()
+                .filter(e -> e.getValue().equals(country))
+                .map(Map.Entry::getKey)
+                .toList();
     }
 }
