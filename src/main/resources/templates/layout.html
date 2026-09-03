@@ -26,14 +26,14 @@
             </li>
         </ul>
 
-        <select id="countrySelectNav" onchange="applyCountryFilter(this.value)"
+        <select id="countrySelectNav" onchange="goToCountry(this.value)"
                 style="padding:5px 28px 5px 10px; border:1.5px solid #d1d5db;
                        border-radius:6px; font-size:13px; font-weight:500; cursor:pointer;
                        background:#fff; appearance:none; color:#374151; min-width:100px;">
-            <option value="ALL">🌐 전체</option>
-            <option value="US">🇺🇸 미국</option>
-            <option value="EU">🇪🇺 유럽</option>
-            <option value="JP">🇯🇵 일본</option>
+            <option value="ALL" th:selected="${currentCountry == null or currentCountry == 'ALL'}">🌐 전체</option>
+            <option value="US"  th:selected="${currentCountry == 'US'}">🇺🇸 미국</option>
+            <option value="EU"  th:selected="${currentCountry == 'EU'}">🇪🇺 유럽</option>
+            <option value="JP"  th:selected="${currentCountry == 'JP'}">🇯🇵 일본</option>
         </select>
 
         <form th:action="@{/main/search}" method="get" class="search-form">
@@ -123,28 +123,23 @@
         <a th:href="@{/news/top10}" style="color:#e74c3c; font-weight:700;">🔥 TOP 10</a>
         <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}" style="color:#7c3aed; font-weight:700;">관리자</a>
 
-        <select id="countrySelect" onchange="applyCountryFilter(this.value)"
+        <select id="countrySelect" onchange="goToCountry(this.value)"
                 style="padding:4px 24px 4px 10px; border:1.5px solid #d1d5db;
                        border-radius:6px; font-size:13px; font-weight:500; cursor:pointer;
                        background:#fff; appearance:none; color:#374151; min-width:100px;
                        margin-right:8px;">
-            <option value="ALL">🌐 전체</option>
-            <option value="US">🇺🇸 미국</option>
-            <option value="EU">🇪🇺 유럽</option>
-            <option value="JP">🇯🇵 일본</option>
+            <option value="ALL" th:selected="${currentCountry == null or currentCountry == 'ALL'}">🌐 전체</option>
+            <option value="US"  th:selected="${currentCountry == 'US'}">🇺🇸 미국</option>
+            <option value="EU"  th:selected="${currentCountry == 'EU'}">🇪🇺 유럽</option>
+            <option value="JP"  th:selected="${currentCountry == 'JP'}">🇯🇵 일본</option>
         </select>
     </nav>
     <script>
-    function applyCountryFilter(filter) {
-        const cards = document.querySelectorAll('.news-main-card, .news-list-item');
-        let count = 0;
-        cards.forEach(item => {
-            const match = filter === 'ALL' || item.dataset.country === filter;
-            item.classList.toggle('hidden', !match);
-            if (match) count++;
-        });
-        const msg = document.getElementById('noResultMsg');
-        if (msg) msg.style.display = count === 0 ? 'block' : 'none';
+    function goToCountry(value) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('country', value);
+        url.searchParams.set('page', '0');
+        window.location.href = url.toString();
     }
     </script>
 </header>

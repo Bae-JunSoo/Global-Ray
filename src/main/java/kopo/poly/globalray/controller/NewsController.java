@@ -16,7 +16,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -35,13 +34,28 @@ public class NewsController {
 
     @GetMapping("/news/{catType}")
     public String newsList(@PathVariable String catType,
+                           @RequestParam(required = false, defaultValue = "0") int page,
+                           @RequestParam(required = false, defaultValue = "ALL") String country,
                            @AuthenticationPrincipal UserDetails userDetails,
                            @AuthenticationPrincipal OAuth2User oAuth2User,
                            Model model) {
         String userId = SecurityUtil.extractUserId(userDetails, oAuth2User);
-        List<NewsDto> newsList = newsService.getNewsByCategory(CmmUtil.nvl(catType), userId);
-        model.addAttribute("newsList", newsList);
+        boolean filtered = country != null && !country.isBlank() && !"ALL".equals(country);
+
+        org.springframework.data.domain.Page<NewsDto> newsPage = filtered
+                ? newsService.getNewsByCategory(CmmUtil.nvl(catType), page, userId, country)
+                : newsService.getNewsByCategory(CmmUtil.nvl(catType), page, userId);
+
+        int pageGroupStart = (page / 10) * 10;
+        int pageGroupEnd = Math.min(pageGroupStart + 10, newsPage.getTotalPages());
+
+        model.addAttribute("newsList", newsPage.getContent());
         model.addAttribute("catType", catType);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", newsPage.getTotalPages());
+        model.addAttribute("currentCountry", country);
+        model.addAttribute("pageGroupStart", pageGroupStart);
+        model.addAttribute("pageGroupEnd", pageGroupEnd);
         return "news/list";
     }
 
