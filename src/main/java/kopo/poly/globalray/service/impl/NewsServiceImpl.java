@@ -6,6 +6,7 @@ import kopo.poly.globalray.entity.UserBookmarkEntity;
 import kopo.poly.globalray.entity.ViewHistoryEntity;
 import kopo.poly.globalray.repository.NewsArticleRepository;
 import kopo.poly.globalray.repository.UserBookmarkRepository;
+import kopo.poly.globalray.repository.UserLikeRepository;
 import kopo.poly.globalray.repository.ViewHistoryRepository;
 import kopo.poly.globalray.service.IGeminiService;
 import kopo.poly.globalray.service.INewsService;
@@ -36,10 +37,10 @@ public class NewsServiceImpl implements INewsService {
 
     private final NewsArticleRepository newsArticleRepository;
     private final UserBookmarkRepository userBookmarkRepository;
+    private final UserLikeRepository userLikeRepository;
     private final ViewHistoryRepository viewHistoryRepository;
     private final IGeminiService geminiService;
 
-    // 유저의 북마크 URL 목록을 한 번에 조회 (N+1 방지)
     @Transactional(readOnly = true)
     private Set<String> getBookmarkedUrls(String loginUserId) {
         if (loginUserId == null) return new HashSet<>();
@@ -49,14 +50,24 @@ public class NewsServiceImpl implements INewsService {
                 .collect(Collectors.toSet());
     }
 
+    @Transactional(readOnly = true)
+    private Set<String> getLikedUrls(String loginUserId) {
+        if (loginUserId == null) return new HashSet<>();
+        return userLikeRepository.findByUserId(loginUserId)
+                .stream()
+                .map(e -> e.getArticleUrl())
+                .collect(Collectors.toSet());
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<NewsDto> getNewsByCategory(String catType, String loginUserId) {
         Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
+        Set<String> likedUrls = getLikedUrls(loginUserId);
         return newsArticleRepository
                 .findByCatTypeAndTitleKorIsNotNullOrderByRegDtDesc(catType)
                 .stream()
-                .map(a -> toDto(a, bookmarkedUrls))
+                .map(a -> toDto(a, bookmarkedUrls, likedUrls))
                 .collect(Collectors.toList());
     }
 
@@ -64,10 +75,11 @@ public class NewsServiceImpl implements INewsService {
     @Transactional(readOnly = true)
     public List<NewsDto> getTop10ByCategory(String catType, String loginUserId) {
         Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
+        Set<String> likedUrls = getLikedUrls(loginUserId);
         return newsArticleRepository
                 .findTop10ByCatTypeAndTitleKorIsNotNullOrderByRegDtDesc(catType)
                 .stream()
-                .map(a -> toDto(a, bookmarkedUrls))
+                .map(a -> toDto(a, bookmarkedUrls, likedUrls))
                 .collect(Collectors.toList());
     }
 
@@ -122,18 +134,20 @@ public class NewsServiceImpl implements INewsService {
         }
 
         Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
-        return toDto(entity, bookmarkedUrls);
+        Set<String> likedUrls = getLikedUrls(loginUserId);
+        return toDto(entity, bookmarkedUrls, likedUrls);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<NewsDto> searchNews(String keyword, String loginUserId) {
         Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
+        Set<String> likedUrls = getLikedUrls(loginUserId);
         return newsArticleRepository.findByTitleKorContainingOrderByRegDtDesc(
                         keyword,
                         Sort.by(Sort.Direction.DESC, "regDt"))
                 .stream()
-                .map(a -> toDto(a, bookmarkedUrls))
+                .map(a -> toDto(a, bookmarkedUrls, likedUrls))
                 .collect(Collectors.toList());
     }
 
@@ -147,16 +161,16 @@ public class NewsServiceImpl implements INewsService {
                 .map(UserBookmarkEntity::getArticleUrl)
                 .collect(Collectors.toList());
 
-        // 북마크 URL 목록으로 한 번에 조회 (N+1 쿼리 방지)
         Map<String, NewsArticleEntity> articleMap = newsArticleRepository.findByUrlIn(urls)
                 .stream()
                 .collect(Collectors.toMap(NewsArticleEntity::getUrl, Function.identity()));
 
         Set<String> bookmarkedUrlSet = new HashSet<>(urls);
+        Set<String> likedUrls = getLikedUrls(userId);
         return bookmarks.stream()
                 .map(bm -> articleMap.get(bm.getArticleUrl()))
                 .filter(article -> article != null)
-                .map(article -> toDto(article, bookmarkedUrlSet))
+                .map(article -> toDto(article, bookmarkedUrlSet, likedUrls))
                 .collect(Collectors.toList());
     }
 
@@ -165,9 +179,10 @@ public class NewsServiceImpl implements INewsService {
     public Page<NewsDto> getNewsByCategory(String catType, int page, String loginUserId) {
         Pageable pageable = PageRequest.of(page, 10);
         Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
+        Set<String> likedUrls = getLikedUrls(loginUserId);
         return newsArticleRepository
                 .findByCatTypeAndTitleKorIsNotNullOrderByRegDtDesc(catType, pageable)
-                .map(a -> toDto(a, bookmarkedUrls));
+                .map(a -> toDto(a, bookmarkedUrls, likedUrls));
     }
 
     @Override
@@ -175,10 +190,11 @@ public class NewsServiceImpl implements INewsService {
     public Page<NewsDto> getNewsByCategory(String catType, int page, String loginUserId, String country) {
         Pageable pageable = PageRequest.of(page, 10);
         Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
+        Set<String> likedUrls = getLikedUrls(loginUserId);
         List<String> sourceNames = CountryMapper.getSourceNames(country);
         return newsArticleRepository
                 .findByCatTypeAndSourceNameInAndTitleKorIsNotNull(catType, sourceNames, pageable)
-                .map(a -> toDto(a, bookmarkedUrls));
+                .map(a -> toDto(a, bookmarkedUrls, likedUrls));
     }
 
     @Override
@@ -186,9 +202,10 @@ public class NewsServiceImpl implements INewsService {
     public Page<NewsDto> getMainNews(int page, String loginUserId) {
         Pageable pageable = PageRequest.of(page, 10);
         Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
+        Set<String> likedUrls = getLikedUrls(loginUserId);
         return newsArticleRepository
                 .findByTitleKorIsNotNullOrderByRegDtDesc(pageable)
-                .map(a -> toDto(a, bookmarkedUrls));
+                .map(a -> toDto(a, bookmarkedUrls, likedUrls));
     }
 
     @Override
@@ -196,10 +213,11 @@ public class NewsServiceImpl implements INewsService {
     public Page<NewsDto> getMainNews(int page, String loginUserId, String country) {
         Pageable pageable = PageRequest.of(page, 10);
         Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
+        Set<String> likedUrls = getLikedUrls(loginUserId);
         List<String> sourceNames = CountryMapper.getSourceNames(country);
         return newsArticleRepository
                 .findBySourceNameInAndTitleKorIsNotNull(sourceNames, pageable)
-                .map(a -> toDto(a, bookmarkedUrls));
+                .map(a -> toDto(a, bookmarkedUrls, likedUrls));
     }
 
     // 조회수 +1: Repository의 $inc 원자적 연산 위임
@@ -220,20 +238,17 @@ public class NewsServiceImpl implements INewsService {
                 .build());
     }
 
-    // 조회수 TOP 10: 비로그인 사용자도 볼 수 있으므로 북마크 Set 빈 값으로 처리
     @Override
     @Transactional(readOnly = true)
     public List<NewsDto> getTop10ByViewCount() {
         return newsArticleRepository
                 .findTop10ByTitleKorIsNotNullOrderByViewCountDesc(PageRequest.of(0, 10))
                 .stream()
-                .map(a -> toDto(a, new HashSet<>()))
+                .map(a -> toDto(a, new HashSet<>(), new HashSet<>()))
                 .collect(Collectors.toList());
     }
 
-    // Entity → DTO 변환 (북마크 Set 으로 비교 → N+1 쿼리 방지)
-    private NewsDto toDto(NewsArticleEntity article, Set<String> bookmarkedUrls) {
-        boolean bookmarked = bookmarkedUrls.contains(article.getUrl());
+    private NewsDto toDto(NewsArticleEntity article, Set<String> bookmarkedUrls, Set<String> likedUrls) {
         return NewsDto.builder()
                 .articleId(article.getArticleId())
                 .catType(article.getCatType())
@@ -247,8 +262,10 @@ public class NewsServiceImpl implements INewsService {
                 .summaryShort(article.getSummaryShort())
                 .thumbUrl(article.getThumbUrl())
                 .regDt(article.getRegDt())
-                .bookmarked(bookmarked)
+                .bookmarked(bookmarkedUrls.contains(article.getUrl()))
+                .liked(likedUrls.contains(article.getUrl()))
                 .viewCount(article.getViewCount())
+                .likeCount(article.getLikeCount())
                 .country(CountryMapper.getCountry(article.getSourceName()))
                 .build();
     }

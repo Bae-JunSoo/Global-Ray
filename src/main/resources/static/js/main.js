@@ -71,6 +71,8 @@ document.addEventListener('click', function(e) {
         toggleUserMenu();
     } else if (action === 'bookmark') {
         toggleBookmark(target);
+    } else if (action === 'like') {
+        toggleLike(target);
     } else if (action === 'delete-account') {
         handleDeleteAccount();
     } else if (action === 'google-pw-info') {
@@ -92,6 +94,45 @@ function getCsrfHeaders() {
         .find(r => r.startsWith('XSRF-TOKEN='))
         ?.split('=')[1];
     return token ? { 'X-XSRF-TOKEN': decodeURIComponent(token) } : {};
+}
+
+/* ===== 좋아요 토글 ===== */
+async function toggleLike(btn) {
+    const articleUrl = btn.getAttribute('data-url');
+    if (!articleUrl) return;
+
+    try {
+        const res = await fetch('/like/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...getCsrfHeaders() },
+            body: JSON.stringify({ articleUrl })
+        });
+
+        if (res.status === 401) {
+            await showAlert('좋아요하려면 로그인이 필요합니다.');
+            window.location.href = '/auth/login';
+            return;
+        }
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        const icon = btn.querySelector('span:first-child');
+        const count = btn.querySelector('.like-count');
+
+        if (data.liked) {
+            btn.classList.add('active');
+            icon.textContent = '❤️';
+            if (count) count.textContent = parseInt(count.textContent) + 1;
+        } else {
+            btn.classList.remove('active');
+            icon.textContent = '🤍';
+            if (count) count.textContent = Math.max(0, parseInt(count.textContent) - 1);
+        }
+
+    } catch (e) {
+        console.error('좋아요 오류:', e);
+    }
 }
 
 /* ===== 북마크 토글 ===== */

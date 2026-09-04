@@ -83,13 +83,20 @@
                          th:alt="${news.title}"
                          onerror="this.style.display='none'">
                 </a>
-                <!-- data-action="bookmark" 으로 onclick 인라인 제거 -->
                 <button sec:authorize="isAuthenticated()"
                         class="bookmark-star"
                         th:classappend="${news.bookmarked} ? ' active' : ''"
                         th:data-url="${news.url}"
                         data-action="bookmark">
                     <span th:text="${news.bookmarked} ? '★' : '☆'">☆</span>
+                </button>
+                <button sec:authorize="isAuthenticated()"
+                        class="like-btn like-btn-card"
+                        th:classappend="${news.liked} ? ' active' : ''"
+                        th:data-url="${news.url}"
+                        data-action="like">
+                    <span th:text="${news.liked} ? '❤️' : '🤍'">🤍</span>
+                    <span class="like-count" th:text="${news.likeCount}">0</span>
                 </button>
             </div>
         </div>
