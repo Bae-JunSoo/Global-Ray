@@ -79,6 +79,15 @@
                         data-action="bookmark">
                     <span th:text="${news.bookmarked} ? '★' : '☆'">☆</span>
                 </button>
+                <button sec:authorize="isAuthenticated()"
+                        class="like-btn"
+                        th:classappend="${news.liked} ? ' active' : ''"
+                        th:data-url="${news.url}"
+                        data-action="like">
+                    <span th:text="${news.liked} ? '❤️' : '🤍'">🤍</span>
+                    <span class="like-count" th:text="${news.likeCount}">0</span>
+                </button>
+
             </div>
         </div>
     </div>

@@ -52,10 +52,17 @@ public interface NewsArticleRepository extends MongoRepository<NewsArticleEntity
     // 상세 페이지 on-demand 심화요약 대상 조회
     List<NewsArticleEntity> findBySummaryKorIsNullAndTitleKorIsNotNullAndContentFullIsNotNull();
 
-    // 조회수 +1 원자적 증가 ($inc 연산 - 동시 요청에도 데이터 정합성 보장)
     @Query("{ '_id': ?0 }")
     @Update("{ '$inc': { 'VIEW_COUNT': 1 } }")
     void increaseViewCount(String articleId);
+
+    @Query("{ 'URL': ?0 }")
+    @Update("{ '$inc': { 'LIKE_COUNT': 1 } }")
+    void increaseLikeCount(String articleUrl);
+
+    @Query("{ 'URL': ?0 }")
+    @Update("{ '$inc': { 'LIKE_COUNT': -1 } }")
+    void decreaseLikeCount(String articleUrl);
 
     // 조회수 TOP 10 (번역 완료 기사만, VIEW_COUNT 내림차순)
     // @Query 사용 시 메서드명의 Top10 제한이 무시되므로 Pageable로 10개 제한

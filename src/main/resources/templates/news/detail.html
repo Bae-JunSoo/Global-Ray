@@ -31,13 +31,23 @@
         </div>
 
         <!-- data-action="bookmark" 으로 onclick 인라인 제거 -->
-        <button sec:authorize="isAuthenticated()"
-                class="bookmark-btn-lg"
-                th:classappend="${article.bookmarked} ? ' active' : ''"
-                th:data-url="${article.url}"
-                data-action="bookmark">
-            <span th:text="${article.bookmarked} ? '★ 북마크됨' : '☆ 북마크'">☆ 북마크</span>
-        </button>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <button sec:authorize="isAuthenticated()"
+                    class="bookmark-btn-lg"
+                    th:classappend="${article.bookmarked} ? ' active' : ''"
+                    th:data-url="${article.url}"
+                    data-action="bookmark">
+                <span th:text="${article.bookmarked} ? '★ 북마크됨' : '☆ 북마크'">☆ 북마크</span>
+            </button>
+            <button sec:authorize="isAuthenticated()"
+                    class="like-btn-lg"
+                    th:classappend="${article.liked} ? ' active' : ''"
+                    th:data-url="${article.url}"
+                    data-action="like">
+                <span th:text="${article.liked} ? '❤️' : '🤍'">🤍</span>
+                좋아요 <span class="like-count" th:text="${article.likeCount}">0</span>
+            </button>
+        </div>
     </div>
 
     <img th:if="${article.thumbUrl}"

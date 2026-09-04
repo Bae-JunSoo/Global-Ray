@@ -21,8 +21,10 @@ public class NewsDto {
     private String thumbUrl;
     private LocalDateTime regDt;
     private boolean bookmarked;
+    private boolean liked;
     private long viewCount;
-    private String country;     // US / EU / JP / ETC (sourceName 기반 분류)
+    private long likeCount;
+    private String country;
 
     // 페이징 정보
     private int currentPage;
