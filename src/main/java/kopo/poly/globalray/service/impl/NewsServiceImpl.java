@@ -3,6 +3,7 @@ package kopo.poly.globalray.service.impl;
 import kopo.poly.globalray.dto.NewsDto;
 import kopo.poly.globalray.entity.NewsArticleEntity;
 import kopo.poly.globalray.entity.UserBookmarkEntity;
+import kopo.poly.globalray.entity.UserLikeEntity;
 import kopo.poly.globalray.entity.ViewHistoryEntity;
 import kopo.poly.globalray.repository.NewsArticleRepository;
 import kopo.poly.globalray.repository.UserBookmarkRepository;
@@ -41,7 +42,6 @@ public class NewsServiceImpl implements INewsService {
     private final ViewHistoryRepository viewHistoryRepository;
     private final IGeminiService geminiService;
 
-    @Transactional(readOnly = true)
     private Set<String> getBookmarkedUrls(String loginUserId) {
         if (loginUserId == null) return new HashSet<>();
         return userBookmarkRepository.findByUserIdOrderByRegDtDesc(loginUserId)
@@ -50,12 +50,11 @@ public class NewsServiceImpl implements INewsService {
                 .collect(Collectors.toSet());
     }
 
-    @Transactional(readOnly = true)
     private Set<String> getLikedUrls(String loginUserId) {
         if (loginUserId == null) return new HashSet<>();
         return userLikeRepository.findByUserId(loginUserId)
                 .stream()
-                .map(e -> e.getArticleUrl())
+                .map(UserLikeEntity::getArticleUrl)
                 .collect(Collectors.toSet());
     }
 

@@ -34,9 +34,4 @@ public class LikeServiceImpl implements ILikeService {
         return true;
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public boolean isLiked(String userId, String articleUrl) {
-        return userLikeRepository.existsByUserIdAndArticleUrl(userId, articleUrl);
-    }
 }
