@@ -68,7 +68,7 @@ public class CountryMapper {
     // sourceName → 국가 코드
     public static String getCountry(String sourceName) {
         if (sourceName == null || sourceName.isBlank()) return "ETC";
-        return SOURCE_COUNTRY_MAP.getOrDefault(sourceName, "US");
+        return SOURCE_COUNTRY_MAP.getOrDefault(sourceName, "ETC");
     }
 
     // 국가 코드 → sourceName 목록 (서버 필터링용)

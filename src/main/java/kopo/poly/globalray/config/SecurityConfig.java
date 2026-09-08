@@ -106,7 +106,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers(
-                                "/mypage/**", "/bookmark/**", "/chatbot/**"
+                                "/mypage/**", "/bookmark/**", "/chatbot/**", "/like/**"
                         ).authenticated()
                         .anyRequest().authenticated()
                 )
