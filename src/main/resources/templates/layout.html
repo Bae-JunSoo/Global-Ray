@@ -123,11 +123,7 @@
         <a th:href="@{/news/top10}" style="color:#e74c3c; font-weight:700;">🔥 TOP 10</a>
         <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}" style="color:#7c3aed; font-weight:700;">관리자</a>
 
-        <select id="countrySelect" onchange="goToCountry(this.value)"
-                style="padding:4px 24px 4px 10px; border:1.5px solid #d1d5db;
-                       border-radius:6px; font-size:13px; font-weight:500; cursor:pointer;
-                       background:#fff; appearance:none; color:#374151; min-width:100px;
-                       margin-right:8px;">
+        <select id="countrySelect" onchange="goToCountry(this.value)" class="country-select-nav">
             <option value="ALL" th:selected="${currentCountry == null or currentCountry == 'ALL'}">🌐 전체</option>
             <option value="US"  th:selected="${currentCountry == 'US'}">🇺🇸 미국</option>
             <option value="EU"  th:selected="${currentCountry == 'EU'}">🇪🇺 유럽</option>
