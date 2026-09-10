@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
@@ -52,7 +52,7 @@
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
                     </button>
-                    <div class="user-dropdown" id="userDropdown">
+                    <div class="user-dropdown" id="userDropdownNav">
                         <a th:href="@{/mypage}">마이페이지</a>
                         <a th:href="@{/chatbot}">Chat Bot</a>
                         <form th:action="@{/auth/logout}" method="post">
