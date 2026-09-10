@@ -1,6 +1,6 @@
 /* ===== 유저 메뉴 드롭다운 토글 ===== */
 function toggleUserMenu() {
-    const dropdown = document.getElementById('userDropdown');
+    const dropdown = document.getElementById('userDropdown') || document.getElementById('userDropdownNav');
     if (dropdown) dropdown.classList.toggle('open');
 }
 
@@ -58,7 +58,7 @@ document.addEventListener('click', function(e) {
     // 드롭다운 외부 클릭 시 닫기
     const wrap = document.querySelector('.user-menu-wrap');
     if (wrap && !wrap.contains(e.target)) {
-        document.getElementById('userDropdown')?.classList.remove('open');
+        (document.getElementById('userDropdown') || document.getElementById('userDropdownNav'))?.classList.remove('open');
     }
 
     // data-action 위임 처리
