@@ -68,4 +68,8 @@ public interface NewsArticleRepository extends MongoRepository<NewsArticleEntity
     // @Query 사용 시 메서드명의 Top10 제한이 무시되므로 Pageable로 10개 제한
     @Query(value = "{ 'TITLE_KOR': { $exists: true, $ne: null } }", sort = "{ 'VIEW_COUNT': -1 }")
     List<NewsArticleEntity> findTop10ByTitleKorIsNotNullOrderByViewCountDesc(Pageable pageable);
+
+    // 챗봇용 키워드 검색: 한국어 제목 또는 요약에서 키워드 포함 기사 최신순 조회
+    @Query(value = "{ $or: [ { 'TITLE_KOR': { $regex: ?0, $options: 'i' } }, { 'SUMMARY_KOR': { $regex: ?0, $options: 'i' } } ], 'TITLE_KOR': { $exists: true, $ne: null } }", sort = "{ 'REG_DT': -1 }")
+    List<NewsArticleEntity> findByKeywordInTitleOrSummary(String keyword, Pageable pageable);
 }
