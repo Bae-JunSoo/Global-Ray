@@ -76,7 +76,7 @@ public class NewsServiceImpl implements INewsService {
         Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
         Set<String> likedUrls = getLikedUrls(loginUserId);
         return newsArticleRepository
-                .findTop10ByCatTypeAndTitleKorIsNotNullOrderByRegDtDesc(catType)
+                .findTop10ByCatTypeAndTitleKorIsNotNullOrderByRegDtDesc(catType, PageRequest.of(0, 10))
                 .stream()
                 .map(a -> toDto(a, bookmarkedUrls, likedUrls))
                 .collect(Collectors.toList());

@@ -34,4 +34,10 @@ public interface IUserInfoService {
 
     // 회원 탈퇴
     void deleteUser(String userId);
+
+    // Spring Security 인증용 조회 (userPw 포함) — CustomUserDetailsService 전용
+    UserInfoDto getUserInfoForAuth(String userId);
+
+    // OAuth2 소셜 로그인: 기존 유저 조회 또는 신규 생성 — CustomOAuth2UserService 전용
+    UserInfoDto findOrCreateOAuth2User(String userId, String email, String name, String socialType);
 }

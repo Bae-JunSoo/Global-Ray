@@ -17,8 +17,9 @@ public interface NewsArticleRepository extends MongoRepository<NewsArticleEntity
     List<NewsArticleEntity> findByCatTypeAndTitleKorIsNotNullOrderByRegDtDesc(String catType);
 
     // 카테고리별 최신 10개 - titleKor 있는 기사만
+    // @Query 사용 시 메서드명의 Top10 키워드는 무시되므로 Pageable로 제한 (PageRequest.of(0, 10) 전달)
     @Query(value = "{ 'CAT_TYPE': ?0, 'TITLE_KOR': { $exists: true, $ne: null } }", sort = "{ 'REG_DT': -1 }")
-    List<NewsArticleEntity> findTop10ByCatTypeAndTitleKorIsNotNullOrderByRegDtDesc(String catType);
+    List<NewsArticleEntity> findTop10ByCatTypeAndTitleKorIsNotNullOrderByRegDtDesc(String catType, Pageable pageable);
 
     // 전체 페이징 - titleKor 있는 기사만 (메인 페이지용)
     @Query(value = "{ 'TITLE_KOR': { $exists: true, $ne: null } }", sort = "{ 'REG_DT': -1 }")

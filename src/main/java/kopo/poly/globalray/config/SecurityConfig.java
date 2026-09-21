@@ -12,7 +12,6 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
@@ -33,15 +32,7 @@ public class SecurityConfig {
     private final CustomOAuth2UserService oAuth2UserService;
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final LoginSuccessHandler loginSuccessHandler;
-
-    // - SHA-256은 연산 속도가 빠르기 때문에 brute-force/레인보우 테이블 공격에 취약
-    // - BCrypt는 의도적으로 연산 비용이 높고, 호출마다 자동으로 랜덤 salt를 생성하여 저장
-    //   → 동일한 비밀번호라도 매번 다른 해시값이 나와 레인보우 테이블 공격 원천 차단
-    // - strength 기본값(10): 2^10 = 1024번 반복 해시 → 현업 권장 수준
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+    private final PasswordEncoder passwordEncoder; // PasswordEncoderConfig에서 주입
 
     // Spring Security 표준 AuthenticationProvider
     // - CustomUserDetailsService.loadUserByUsername()으로 DB 조회
@@ -52,7 +43,7 @@ public class SecurityConfig {
         // [수정] Spring Security 7부터 기본 생성자 + setUserDetailsService()가 제거됨
         //        -> 생성자에서 UserDetailsService를 직접 주입받는 방식으로 변경
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
+        provider.setPasswordEncoder(passwordEncoder);
         return provider;
     }
 

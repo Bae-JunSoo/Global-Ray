@@ -18,6 +18,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -189,6 +191,41 @@ public class UserInfoServiceImpl implements IUserInfoService {
     public void deleteUser(String userId) {
         userBookmarkRepository.deleteByUserId(userId);
         userInfoRepository.deleteById(userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserInfoDto getUserInfoForAuth(String userId) {
+        UserInfoEntity user = userInfoRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다 : " + userId));
+        return UserInfoDto.builder()
+                .userId(user.getUserId())
+                .userPw(user.getUserPw())
+                .userEmail(user.getUserEmail())
+                .userName(user.getUserName())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public UserInfoDto findOrCreateOAuth2User(String userId, String email, String name, String socialType) {
+        UserInfoEntity user = userInfoRepository.findByUserEmail(email)
+                .orElseGet(() -> {
+                    UserInfoEntity newUser = UserInfoEntity.builder()
+                            .userId(userId)
+                            .userPw("")
+                            .userName(name)
+                            .userEmail(email)
+                            .socialType(socialType)
+                            .build();
+                    log.info("신규 OAuth2 유저 등록 : {} ({})", email, socialType);
+                    return userInfoRepository.save(newUser);
+                });
+        return UserInfoDto.builder()
+                .userId(user.getUserId())
+                .userEmail(user.getUserEmail())
+                .userName(user.getUserName())
+                .build();
     }
 
     // 임시 비밀번호 생성 (SecureRandom 사용)
