@@ -29,21 +29,20 @@ public class ChatBotServiceImpl implements IChatBotService {
 
         log.info("챗봇 관련 뉴스 검색 결과 - 질문: '{}', 검색된 기사 수: {}", question, relatedNews.size());
 
-        String prompt;
         if (relatedNews.isEmpty()) {
-            // 관련 뉴스가 없으면 일반 AI 답변
-            prompt = "다음 질문에 친절하고 정확하게 한국어로 답변해주세요.\n\n질문: " + question;
-        } else {
-            // 검색된 뉴스 제목 + 요약을 컨텍스트로 구성
-            String context = relatedNews.stream()
-                    .map(n -> "제목: " + n.getTitleKor()
-                            + "\n요약: " + CmmUtil.nvl(n.getSummaryKor(), CmmUtil.nvl(n.getDescription(), "")))
-                    .collect(Collectors.joining("\n\n"));
-
-            prompt = "아래 뉴스 기사들을 참고하여 질문에 한국어로 답변해주세요.\n"
-                    + "참고 기사와 관련이 없는 질문이면 일반적인 지식으로 답해주세요.\n\n"
-                    + "[참고 뉴스 기사]\n" + context + "\n\n[질문]\n" + question;
+            // 관련 뉴스가 없으면 안내 메시지 반환 (일반 질문 차단)
+            return "죄송합니다. 해당 주제와 관련된 뉴스를 찾을 수 없습니다.\nGlobalRay에 수집된 뉴스와 관련된 질문을 해주세요.";
         }
+
+        // 검색된 뉴스 제목 + 요약을 컨텍스트로 구성
+        String context = relatedNews.stream()
+                .map(n -> "제목: " + n.getTitleKor()
+                        + "\n요약: " + CmmUtil.nvl(n.getSummaryKor(), CmmUtil.nvl(n.getDescription(), "")))
+                .collect(Collectors.joining("\n\n"));
+
+        String prompt = "아래 뉴스 기사들을 참고하여 질문에 한국어로 답변해주세요.\n"
+                + "반드시 참고 기사 내용을 바탕으로만 답변하고, 관련 없는 내용은 답하지 마세요.\n\n"
+                + "[참고 뉴스 기사]\n" + context + "\n\n[질문]\n" + question;
 
         return geminiService.callGeminiApi(prompt);
     }
