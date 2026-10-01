@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200">
+    <title>글쓰기 - GlobalRay</title>
+    <link rel="stylesheet" th:href="@{/css/Base.css}">
+    <link rel="stylesheet" th:href="@{/css/Header.css}">
+    <link rel="stylesheet" th:href="@{/css/Components.css}">
+    <link rel="stylesheet" th:href="@{/css/Responsive.css}">
+    <link rel="stylesheet" th:href="@{/css/board.css}">
+</head>
+<body>
+
+<div th:replace="~{layout :: navbar}"></div>
+
+<main>
+    <div class="board-form-wrap">
+        <div class="board-form-card">
+            <h2 class="board-form-title">글쓰기</h2>
+            <p style="font-size:0.82rem; color:var(--text-sub); margin-bottom:20px;">
+                작성자 정보는 공개되지 않으며 익명으로 게시됩니다.
+            </p>
+
+            <form th:action="@{/board/write}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                <div class="form-group">
+                    <label for="title">제목</label>
+                    <input type="text" id="title" name="title" maxlength="200"
+                           placeholder="제목을 입력하세요" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="content">내용</label>
+                    <textarea id="content" name="content"
+                              placeholder="내용을 입력하세요" required></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <a th:href="@{/board}" class="btn-cancel">취소</a>
+                    <button type="submit" class="btn-submit">등록</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
