@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200">
+    <title th:text="${pageTitle} + ' - GlobalRay'">익명 게시판 - GlobalRay</title>
+    <link rel="stylesheet" th:href="@{/css/Base.css}">
+    <link rel="stylesheet" th:href="@{/css/Header.css}">
+    <link rel="stylesheet" th:href="@{/css/Components.css}">
+    <link rel="stylesheet" th:href="@{/css/Responsive.css}">
+    <link rel="stylesheet" th:href="@{/css/board.css}">
+</head>
+<body>
+
+<div th:replace="~{layout :: navbar}"></div>
+
+<main>
+    <div class="board-wrap">
+        <div class="board-header">
+            <h1 class="board-title">익명 게시판</h1>
+            <a th:href="@{/board/write}" class="btn-write"
+               sec:authorize="isAuthenticated()">글쓰기</a>
+        </div>
+
+        <table class="board-table">
+            <thead>
+                <tr>
+                    <th style="width:70px;">번호</th>
+                    <th>제목</th>
+                    <th style="width:90px;">작성일</th>
+                    <th style="width:70px;">조회</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:if="${postPage.content.empty}">
+                    <td colspan="4" class="board-empty">아직 작성된 게시글이 없습니다.</td>
+                </tr>
+                <tr th:each="post, stat : ${postPage.content}">
+                    <td th:text="${postPage.totalElements - postPage.number * postPage.size - stat.index}"></td>
+                    <td>
+                        <a th:href="@{/board/{id}(id=${post.id})}" th:text="${post.title}">제목</a>
+                        <span th:if="${post.commentCount > 0}" class="comment-badge"
+                              th:text="${post.commentCount}">0</span>
+                    </td>
+                    <td th:text="${#temporals.format(post.regDt, 'MM.dd')}">날짜</td>
+                    <td th:text="${post.viewCount}">0</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- 페이지네이션 -->
+        <div class="board-pagination" th:if="${postPage.totalPages > 1}">
+            <a th:if="${!postPage.first}" th:href="@{/board(page=${currentPage - 1})}">이전</a>
+            <th:block th:each="i : ${#numbers.sequence(0, postPage.totalPages - 1)}">
+                <span th:if="${i == currentPage}" class="active" th:text="${i + 1}">1</span>
+                <a th:unless="${i == currentPage}" th:href="@{/board(page=${i})}" th:text="${i + 1}">1</a>
+            </th:block>
+            <a th:if="${!postPage.last}" th:href="@{/board(page=${currentPage + 1})}">다음</a>
+        </div>
+    </div>
+</main>
+
+<script th:src="@{/js/main.js}"></script>
+</body>
+</html>
