@@ -1,7 +1,15 @@
 package kopo.poly.globalray.service;
 
+import kopo.poly.globalray.dto.ChatHistoryDto;
+import kopo.poly.globalray.dto.ChatResponseDto;
+
+import java.util.List;
+
 public interface IChatBotService {
 
-    // 챗봇 질문 응답 (Gemini API)
-    String askChatbot(String question) throws Exception;
+    ChatResponseDto ask(String userId, String question) throws Exception;
+
+    List<ChatHistoryDto> getHistory(String userId);
+
+    void clearHistory(String userId);
 }

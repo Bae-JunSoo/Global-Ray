@@ -1,14 +1,18 @@
 package kopo.poly.globalray.controller;
 
+import kopo.poly.globalray.dto.ChatHistoryDto;
+import kopo.poly.globalray.dto.ChatRequestDto;
 import kopo.poly.globalray.service.IChatBotService;
-import kopo.poly.globalray.util.CmmUtil;
+import kopo.poly.globalray.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -19,32 +23,36 @@ public class ChatBotController {
 
     private final IChatBotService chatBotService;
 
-    // 챗봇 페이지
     @GetMapping
     public String chatbotPage() {
         return "chatbot/index";
     }
 
-    // 챗봇 질문 (Ajax)
     @PostMapping("/ask")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> ask(@RequestBody Map<String, String> body) {
-        String question = CmmUtil.nvl(body.get("question"));
-
-        if (question.isBlank()) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("answer", "질문을 입력해주세요."));
-        }
-
+    public ResponseEntity<?> ask(@RequestBody ChatRequestDto request, Principal principal) {
+        String userId = SecurityUtil.extractUserId(principal);
         try {
-            String answer = chatBotService.askChatbot(question);
-            return ResponseEntity.ok(
-                    Map.of("answer", CmmUtil.nvl(answer, "답변을 가져오지 못했습니다."))
-            );
+            return ResponseEntity.ok(chatBotService.ask(userId, request.getQuestion()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
-            log.error("챗봇 오류 : {}", e.getMessage());
-            return ResponseEntity.internalServerError()
-                    .body(Map.of("answer", "오류가 발생했습니다. 잠시 후 다시 시도해주세요."));
+            log.error("챗봇 AI 호출 실패 - userId: {}, 원인: {}", userId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                    .body(Map.of("message", "AI 답변을 가져오지 못했습니다. 잠시 후 다시 시도해주세요."));
         }
+    }
+
+    @GetMapping("/history")
+    @ResponseBody
+    public List<ChatHistoryDto> history(Principal principal) {
+        return chatBotService.getHistory(SecurityUtil.extractUserId(principal));
+    }
+
+    @DeleteMapping("/history")
+    @ResponseBody
+    public ResponseEntity<Void> clearHistory(Principal principal) {
+        chatBotService.clearHistory(SecurityUtil.extractUserId(principal));
+        return ResponseEntity.noContent().build();
     }
 }

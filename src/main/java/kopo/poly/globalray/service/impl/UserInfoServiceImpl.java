@@ -3,6 +3,7 @@ package kopo.poly.globalray.service.impl;
 import kopo.poly.globalray.dto.UserInfoDto;
 import kopo.poly.globalray.entity.EmailAuthEntity;
 import kopo.poly.globalray.entity.UserInfoEntity;
+import kopo.poly.globalray.repository.ChatHistoryRepository;
 import kopo.poly.globalray.repository.EmailAuthRepository;
 import kopo.poly.globalray.repository.UserBookmarkRepository;
 import kopo.poly.globalray.repository.UserInfoRepository;
@@ -31,6 +32,7 @@ public class UserInfoServiceImpl implements IUserInfoService {
 
     private final UserInfoRepository userInfoRepository;
     private final UserBookmarkRepository userBookmarkRepository;
+    private final ChatHistoryRepository chatHistoryRepository;
     private final EmailAuthRepository emailAuthRepository;
     private final IEmailService emailService;
 
@@ -190,6 +192,7 @@ public class UserInfoServiceImpl implements IUserInfoService {
     @Transactional
     public void deleteUser(String userId) {
         userBookmarkRepository.deleteByUserId(userId);
+        chatHistoryRepository.deleteByUserId(userId);
         userInfoRepository.deleteById(userId);
     }
 
