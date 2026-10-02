@@ -12,6 +12,44 @@
     margin: 0 auto;
 }
 
+/* 상단 도구 영역 */
+.chat-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+}
+#clearHistoryBtn {
+    padding: 6px 14px;
+    border: 1px solid #d0d0d0;
+    border-radius: 8px;
+    background: #fff;
+    color: #666;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all .15s;
+}
+#clearHistoryBtn:hover { border-color: #e74c3c; color: #e74c3c; }
+
+/* 답변 근거 기사 */
+.chat-sources {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed #e0e0e0;
+    white-space: normal;
+}
+.chat-sources a {
+    font-size: 0.8rem;
+    color: #1a73e8;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.chat-sources a:hover { text-decoration: underline; }
+
 /* 메시지 영역 */
 .chat-messages {
     flex: 1;
