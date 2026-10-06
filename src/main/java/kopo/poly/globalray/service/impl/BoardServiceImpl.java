@@ -58,6 +58,7 @@ public class BoardServiceImpl implements IBoardService {
                         .id(c.getId())
                         .content(c.getContent())
                         .regDt(c.getRegDt())
+                        .modDt(c.getModDt())
                         .mine(c.getUserId().equals(loginUserId))
                         .build())
                 .toList();
@@ -119,12 +120,7 @@ public class BoardServiceImpl implements IBoardService {
     @Override
     @Transactional
     public void addComment(Long boardId, String content, String userId) {
-        if (content == null || content.isBlank()) {
-            throw new IllegalArgumentException("댓글 내용을 입력해주세요.");
-        }
-        if (content.trim().length() > MAX_COMMENT_LENGTH) {
-            throw new IllegalArgumentException("댓글은 " + MAX_COMMENT_LENGTH + "자 이내로 입력해주세요.");
-        }
+        validateComment(content);
         BoardEntity board = findPost(boardId);
         boardCommentRepository.save(BoardCommentEntity.builder()
                 .board(board)
@@ -135,11 +131,33 @@ public class BoardServiceImpl implements IBoardService {
 
     @Override
     @Transactional
+    public void updateComment(Long commentId, String content, String userId) {
+        validateComment(content);
+        BoardCommentEntity comment = findComment(commentId);
+        checkOwner(comment.getUserId(), userId);
+        comment.update(content.trim());
+    }
+
+    @Override
+    @Transactional
     public void deleteComment(Long commentId, String userId) {
-        BoardCommentEntity comment = boardCommentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+        BoardCommentEntity comment = findComment(commentId);
         checkOwner(comment.getUserId(), userId);
         boardCommentRepository.delete(comment);
+    }
+
+    private BoardCommentEntity findComment(Long commentId) {
+        return boardCommentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+    }
+
+    private void validateComment(String content) {
+        if (content == null || content.isBlank()) {
+            throw new IllegalArgumentException("댓글 내용을 입력해주세요.");
+        }
+        if (content.trim().length() > MAX_COMMENT_LENGTH) {
+            throw new IllegalArgumentException("댓글은 " + MAX_COMMENT_LENGTH + "자 이내로 입력해주세요.");
+        }
     }
 
     private BoardEntity findPost(Long id) {

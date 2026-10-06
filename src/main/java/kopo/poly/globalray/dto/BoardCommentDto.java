@@ -11,5 +11,6 @@ public class BoardCommentDto {
     private Long id;
     private String content;
     private LocalDateTime regDt;
+    private LocalDateTime modDt;
     private boolean mine;
 }

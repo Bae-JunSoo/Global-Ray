@@ -93,6 +93,16 @@ public class BoardController {
         return "redirect:/board/" + id;
     }
 
+    @PostMapping("/comment/{commentId}/edit")
+    @PreAuthorize("isAuthenticated()")
+    public String editComment(@PathVariable Long commentId,
+                              @RequestParam String content,
+                              @RequestParam Long boardId,
+                              Principal principal) {
+        boardService.updateComment(commentId, content, SecurityUtil.extractUserId(principal));
+        return "redirect:/board/" + boardId;
+    }
+
     @PostMapping("/comment/{commentId}/delete")
     @PreAuthorize("isAuthenticated()")
     public String deleteComment(@PathVariable Long commentId,
