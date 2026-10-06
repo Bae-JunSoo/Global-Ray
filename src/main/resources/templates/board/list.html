@@ -23,6 +23,18 @@
                sec:authorize="isAuthenticated()">글쓰기</a>
         </div>
 
+        <form th:action="@{/board}" method="get" class="board-search">
+            <input type="text" name="keyword" th:value="${keyword}"
+                   maxlength="50" placeholder="제목으로 검색">
+            <button type="submit">검색</button>
+            <a th:if="${!#strings.isEmpty(keyword)}" th:href="@{/board}" class="board-search-reset">전체 보기</a>
+        </form>
+
+        <p th:if="${!#strings.isEmpty(keyword)}" class="board-search-result">
+            '<span th:text="${keyword}">검색어</span>' 검색 결과
+            <strong th:text="${postPage.totalElements}">0</strong>건
+        </p>
+
         <table class="board-table">
             <thead>
                 <tr>
@@ -34,7 +46,8 @@
             </thead>
             <tbody>
                 <tr th:if="${postPage.content.empty}">
-                    <td colspan="4" class="board-empty">아직 작성된 게시글이 없습니다.</td>
+                    <td colspan="4" class="board-empty"
+                        th:text="${#strings.isEmpty(keyword)} ? '아직 작성된 게시글이 없습니다.' : '검색 결과가 없습니다.'">아직 작성된 게시글이 없습니다.</td>
                 </tr>
                 <tr th:each="post, stat : ${postPage.content}">
                     <td th:text="${postPage.totalElements - postPage.number * postPage.size - stat.index}"></td>
@@ -51,12 +64,12 @@
 
         <!-- 페이지네이션 -->
         <div class="board-pagination" th:if="${postPage.totalPages > 1}">
-            <a th:if="${!postPage.first}" th:href="@{/board(page=${currentPage - 1})}">이전</a>
+            <a th:if="${!postPage.first}" th:href="@{/board(page=${currentPage - 1}, keyword=${keyword})}">이전</a>
             <th:block th:each="i : ${#numbers.sequence(0, postPage.totalPages - 1)}">
                 <span th:if="${i == currentPage}" class="active" th:text="${i + 1}">1</span>
-                <a th:unless="${i == currentPage}" th:href="@{/board(page=${i})}" th:text="${i + 1}">1</a>
+                <a th:unless="${i == currentPage}" th:href="@{/board(page=${i}, keyword=${keyword})}" th:text="${i + 1}">1</a>
             </th:block>
-            <a th:if="${!postPage.last}" th:href="@{/board(page=${currentPage + 1})}">다음</a>
+            <a th:if="${!postPage.last}" th:href="@{/board(page=${currentPage + 1}, keyword=${keyword})}">다음</a>
         </div>
     </div>
 </main>

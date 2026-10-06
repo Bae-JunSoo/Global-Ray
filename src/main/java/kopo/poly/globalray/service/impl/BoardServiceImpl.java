@@ -25,9 +25,15 @@ public class BoardServiceImpl implements IBoardService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<BoardDto> getPostList(int page) {
-        return boardRepository.findAllByOrderByRegDtDesc(PageRequest.of(page, 15))
-                .map(e -> BoardDto.builder()
+    public Page<BoardDto> getPostList(int page, String keyword) {
+        PageRequest pageable = PageRequest.of(Math.max(page, 0), 15);
+        String cleanKeyword = keyword == null ? "" : keyword.trim();
+
+        Page<BoardEntity> posts = cleanKeyword.isEmpty()
+                ? boardRepository.findAllByOrderByRegDtDesc(pageable)
+                : boardRepository.findByTitleContainingOrderByRegDtDesc(cleanKeyword, pageable);
+
+        return posts.map(e -> BoardDto.builder()
                         .id(e.getId())
                         .title(e.getTitle())
                         .regDt(e.getRegDt())

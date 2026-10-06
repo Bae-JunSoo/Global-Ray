@@ -20,10 +20,14 @@ public class BoardController {
     private final IBoardService boardService;
 
     @GetMapping
-    public String list(@RequestParam(defaultValue = "0") int page, Model model) {
-        Page<BoardDto> postPage = boardService.getPostList(page);
+    public String list(@RequestParam(defaultValue = "0") int page,
+                       @RequestParam(required = false) String keyword,
+                       Model model) {
+        String cleanKeyword = keyword == null ? "" : keyword.trim();
+        Page<BoardDto> postPage = boardService.getPostList(page, cleanKeyword);
         model.addAttribute("postPage", postPage);
-        model.addAttribute("currentPage", page);
+        model.addAttribute("currentPage", postPage.getNumber());
+        model.addAttribute("keyword", cleanKeyword);
         model.addAttribute("pageTitle", "익명 게시판");
         return "board/list";
     }
