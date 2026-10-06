@@ -4,18 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import java.time.LocalDateTime;
 
-/**
- * 회원 정보 응답 전용 DTO
- *
- * [이전 문제]
- * @Setter 가 전체 적용되어 userPw 를 포함한 모든 필드가 외부에서 임의 변경 가능한 상태였음
- * 요청/응답 DTO 를 혼용해서 불필요한 필드(authCode 등)가 섞여 있었음
- *
- * [해결]
- * 응답 전용 DTO 로 역할을 명확히 하고 @Setter 제거
- * 값 설정은 @Builder 로만 가능하게 해서 불변성 보장
- * 회원가입 요청은 SignupRequest (요청 전용 DTO) 로 분리
- */
+// 회원 정보 전달용 DTO: @Setter 없이 @Builder로만 만들어 생성 후 값이 바뀌지 않게 함
 @Getter
 @NoArgsConstructor @AllArgsConstructor
 @Builder

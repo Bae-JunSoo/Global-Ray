@@ -45,28 +45,12 @@ public class AuthController {
         return "auth/signup";
     }
 
-    /**
-     * 회원가입 처리
-     *
-     * [변경 사항 1 - @ModelAttribute 타입 변경]
-     * 이전: UserInfoDto (응답 DTO를 요청에 혼용, @Valid 없음)
-     * 이후: SignupRequest (요청 전용 DTO, Bean Validation 어노테이션 적용)
-     *
-     * [변경 사항 2 - @Valid + BindingResult 추가]
-     * @Valid: SignupRequest 의 @NotBlank, @Size, @Email 검증을 자동 실행
-     * BindingResult: 검증 실패 시 예외를 던지지 않고 오류 내용을 담아 컨트롤러로 돌아옴
-     * → 빈 아이디/비밀번호, 잘못된 이메일 형식 등을 서버에서 즉시 차단
-     *
-     * [컨트롤러→서비스 변환]
-     * SignupRequest 를 UserInfoDto 로 변환 후 서비스에 전달
-     * → 서비스 레이어는 표현 계층(SignupRequest) 과 무관하게 유지
-     */
+    // BindingResult를 받으면 검증 실패 시 예외 대신 오류 정보가 담겨 와서, 같은 화면에 메시지를 보여줄 수 있음
     @PostMapping("/signup")
     public String signup(@Valid @ModelAttribute SignupRequest request,
                          BindingResult bindingResult,
                          Model model) {
 
-        // Bean Validation 실패 시 첫 번째 오류 메시지를 화면에 전달
         if (bindingResult.hasErrors()) {
             String errorMsg = bindingResult.getAllErrors().get(0).getDefaultMessage();
             model.addAttribute("errorMsg", errorMsg);
@@ -74,8 +58,8 @@ public class AuthController {
         }
 
         try {
-            // SignupRequest → UserInfoDto 변환 (서비스는 표현 계층 DTO 에 의존하지 않음)
-            UserInfoDto dto = UserInfoDto.builder() // builder = 밑에 있는 값들을 하나로 모아서 하나의 객체로 묶음
+            // 서비스가 화면용 요청 DTO(SignupRequest)에 의존하지 않도록 변환해서 전달
+            UserInfoDto dto = UserInfoDto.builder()
                     .userId(request.getUserId())
                     .userPw(request.getUserPw())
                     .userName(request.getUserName())

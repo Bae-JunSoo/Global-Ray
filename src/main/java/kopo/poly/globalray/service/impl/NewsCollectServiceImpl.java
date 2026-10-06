@@ -32,32 +32,10 @@ public class NewsCollectServiceImpl implements INewsCollectService {
     private final WebClient.Builder webClientBuilder;
     private final IGeminiService geminiService;
 
-    /**
-     * [변경 사항 1 - 스레드풀 Bean 주입으로 교체]
-     * 이전: collectByCategory() 호출마다 Executors.newFixedThreadPool(5) 로 새 스레드풀 생성
-     *       사용 후 shutdown() → 스케줄러 실행마다 스레드 5개 생성/소멸 반복
-     * 이후: AsyncConfig 에 등록된 crawlExecutor Bean 을 주입받아 재사용
-     *       애플리케이션 시작 시 1회 생성, 이후 모든 스케줄 실행에서 동일한 스레드풀 사용
-     *       shutdown() 호출 불필요 (Spring 컨테이너가 생명주기 관리)
-     *
-     * @Qualifier: 같은 타입의 Bean 이 여러 개일 때 이름으로 특정
-     */
     private final ThreadPoolTaskExecutor crawlExecutor;
-
-    /**
-     * [변경 사항 2 - Jackson ObjectMapper 주입으로 교체]
-     * 이전: extractJsonValue() 메서드로 문자열 인덱스를 직접 탐색해서 JSON 파싱
-     *       → 직접 구현한 파서는 엣지케이스(이스케이프, 중첩 JSON 등)에 취약
-     *       → Spring Boot 에 Jackson 이 이미 포함되어 있는데 중복 구현
-     * 이후: Spring Boot 가 자동 구성한 ObjectMapper Bean 을 주입받아 사용
-     *       → 안전하고 검증된 JSON 파싱, 코드량 감소
-     */
     private final ObjectMapper objectMapper;
 
-    /**
-     * @RequiredArgsConstructor 는 @Qualifier 를 지원하지 않으므로 생성자를 직접 작성
-     * @Qualifier("crawlExecutor"): AsyncConfig 에 등록한 Bean 이름으로 특정
-     */
+    // @RequiredArgsConstructor는 생성자 파라미터에 @Qualifier를 붙여주지 않아 직접 작성
     public NewsCollectServiceImpl(
             NewsArticleRepository newsArticleRepository,
             WebClient.Builder webClientBuilder,
@@ -77,10 +55,8 @@ public class NewsCollectServiceImpl implements INewsCollectService {
     @Value("${api.news.url}")
     private String newsApiUrl;
 
-    // Gemini Free Tier: 분당 15회 제한
-    // 호출 간격 4초 (gemini-2.5-flash-lite RPM 15회 기준)
-    // 429 발생 시 60초 대기 (1분 후 쿼터 리셋)
-    // 최대 재시도 3회
+    // Gemini 무료 등급의 분당 호출 제한(15회)을 넘지 않도록 4초 간격으로 호출
+    // 429 발생 시 분 단위 한도가 풀리도록 60초 대기, 최대 3회까지 시도
     private static final long GEMINI_INTERVAL_MS   = 4_000L;
     private static final long GEMINI_RETRY_WAIT_MS = 60_000L;
     private static final int  GEMINI_MAX_RETRY     = 3;
@@ -160,7 +136,6 @@ public class NewsCollectServiceImpl implements INewsCollectService {
         log.info("[{}] 신규 기사 {}건 크롤링 시작", korCat, newArticles.size());
 
         // ── 2단계: 크롤링 병렬 처리 ──
-        // Bean 으로 관리되는 crawlExecutor 재사용 (생성/shutdown 반복 없음)
         List<Future<ArticleData>> futures = new ArrayList<>();
 
         for (Map<String, Object> art : newArticles) {
@@ -180,7 +155,6 @@ public class NewsCollectServiceImpl implements INewsCollectService {
                 log.warn("크롤링 Future 오류 : {}", e.getMessage());
             }
         }
-        // shutdown() 제거: Bean 생명주기는 Spring 컨테이너가 관리
 
         log.info("[{}] 크롤링 완료 → Gemini 번역 시작", korCat);
 
@@ -248,20 +222,7 @@ public class NewsCollectServiceImpl implements INewsCollectService {
                 """.formatted(title, source);
     }
 
-    /**
-     * Gemini 호출 + JSON 파싱 (ObjectMapper 사용)
-     *
-     * [변경 사항 - 수동 JSON 파싱 제거]
-     * 이전: extractJsonValue() 메서드로 문자열 인덱스를 직접 탐색
-     *       → 이스케이프 처리, 중첩 구조 등 엣지케이스에 취약한 직접 구현 파서
-     *       → Spring Boot 에 Jackson 이 기본 포함되어 있는데 불필요한 중복 코드
-     * 이후: 주입받은 ObjectMapper.readValue() 로 표준 JSON 파싱
-     *       → 코드 간결화, 안정성 향상
-     *
-     * 429(Rate Limit) 발생 시 60초 대기 후 재시도 (쿼터 리셋 대기)
-     * 503(Service Unavailable) 발생 시 10초 대기 후 재시도
-     * 그 외 예외는 즉시 실패 처리 (재시도해도 의미 없음)
-     */
+    // 429(호출 한도 초과)는 60초, 503(일시 오류)은 10초 기다렸다 재시도하고, 그 외 오류는 재시도해도 의미 없어 바로 실패 처리
     private Map<String, String> callGeminiWithRetry(String prompt) {
         for (int attempt = 1; attempt <= GEMINI_MAX_RETRY; attempt++) {
             try {
@@ -312,9 +273,8 @@ public class NewsCollectServiceImpl implements INewsCollectService {
         return null;
     }
 
-    // Jsoup 으로 기사 본문 크롤링
-    @Override
-    public String crawlArticleContent(String url) throws Exception {
+    // Jsoup 으로 기사 본문 크롤링 (실패해도 수집은 계속되도록 null 반환)
+    private String crawlArticleContent(String url) {
         try {
             Document doc = Jsoup.connect(url)
                     .userAgent("Mozilla/5.0")

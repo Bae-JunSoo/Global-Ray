@@ -8,8 +8,6 @@ import java.util.Optional;
 public interface UserBookmarkRepository extends JpaRepository<UserBookmarkEntity, Long> {
 
     List<UserBookmarkEntity> findByUserIdOrderByRegDtDesc(String userId);
-    boolean existsByUserIdAndArticleUrl(String userId, String articleUrl);
-
     Optional<UserBookmarkEntity> findByUserIdAndArticleUrl(String userId, String articleUrl);
     void deleteByUserId(String userId);
 }

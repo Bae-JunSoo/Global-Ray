@@ -17,16 +17,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-/**
- * [변경 사항 - 미사용 의존성 제거]
- * 이전: IUserInfoService 를 주입했지만 이 컨트롤러 어디에서도 사용하지 않았음
- *       → 불필요한 의존성은 코드 가독성을 낮추고 테스트 시 불필요한 Mock 을 요구함
- * 이후: IUserInfoService 제거, INewsService 만 유지
- *
- * [변경 사항 - extractUserId 호출 방식]
- * 이전: GlobalControllerAdvice.extractUserId(userDetails, oAuth2User) (강결합)
- * 이후: SecurityUtil.extractUserId(userDetails, oAuth2User) (유틸 클래스 의존)
- */
 @Slf4j
 @Controller
 @RequiredArgsConstructor
@@ -64,7 +54,6 @@ public class MainController {
         model.addAttribute("totalPages", newsPage.getTotalPages());
         model.addAttribute("currentCat", cat);
         model.addAttribute("currentCountry", country);
-        model.addAttribute("userId", userId);
         model.addAttribute("pageGroupStart", pageGroupStart);
         model.addAttribute("pageGroupEnd", pageGroupEnd);
         return "main/index";

@@ -13,13 +13,10 @@ import kopo.poly.globalray.util.CmmUtil;
 import kopo.poly.globalray.util.EncryptUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
@@ -35,28 +32,14 @@ public class UserInfoServiceImpl implements IUserInfoService {
     private final ChatHistoryRepository chatHistoryRepository;
     private final EmailAuthRepository emailAuthRepository;
     private final IEmailService emailService;
-
-    // [추가] SecurityConfig에서 정의한 SHA256 PasswordEncoder Bean 주입
-    //        비밀번호 암호화/비교를 SecurityConfig와 동일한 로직으로 통일
+    // 로그인 시 비교에 쓰는 것과 같은 BCrypt 인코더 (PasswordEncoderConfig)
     private final PasswordEncoder passwordEncoder;
 
-    /**
-     * 읽기 전용 메서드에 @Transactional(readOnly = true) 를 추가하는 이유
-     * - JPA 는 트랜잭션 내에서 엔티티 변경 감지(Dirty Checking)를 위해 스냅샷을 복사해둠
-     * - readOnly = true 로 설정하면 스냅샷 복사와 변경 감지를 생략 → 성능 향상
-     * - DB 드라이버/커넥션 풀 레벨에서 읽기 전용 최적화 힌트도 전달됨
-     */
-
+    // 조회 전용 메서드는 readOnly = true: 변경 감지용 스냅샷을 만들지 않아 불필요한 비용을 줄임
     @Override
     @Transactional(readOnly = true)
     public boolean isUserIdDuplicate(String userId) {
         return userInfoRepository.existsByUserId(userId);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public boolean isEmailDuplicate(String email) {
-        return userInfoRepository.existsByUserEmail(email);
     }
 
     @Override
@@ -120,8 +103,6 @@ public class UserInfoServiceImpl implements IUserInfoService {
 
         UserInfoEntity user = UserInfoEntity.builder()
                 .userId(dto.getUserId())
-                // [수정] EncryptUtil.encHashSHA256() 직접 호출 -> passwordEncoder.encode()로 교체
-                //        (SecurityConfig의 PasswordEncoder Bean과 동일 로직이므로 결과값은 동일)
                 .userPw(passwordEncoder.encode(dto.getUserPw()))
                 .userName(dto.getUserName())
                 .userEmail(dto.getUserEmail())
@@ -146,8 +127,6 @@ public class UserInfoServiceImpl implements IUserInfoService {
         if (!user.getUserEmail().equals(email)) return false;
 
         String tempPw = generateTempPassword();
-
-        // [수정] EncryptUtil.encHashSHA256() 직접 호출 -> passwordEncoder.encode()로 교체
         user.changePassword(passwordEncoder.encode(tempPw));
         userInfoRepository.save(user);
 
@@ -162,12 +141,9 @@ public class UserInfoServiceImpl implements IUserInfoService {
         UserInfoEntity user = userInfoRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        // [수정] user.getUserPw().equals(EncryptUtil.encHashSHA256(currentPw))
-        //        -> passwordEncoder.matches(currentPw, user.getUserPw())로 교체
-        //        (matches 내부에서 동일하게 SHA256 암호화 후 비교)
+        // BCrypt는 매번 다른 salt를 쓰므로 equals로 비교할 수 없고 matches()로 비교해야 함
         if (!passwordEncoder.matches(currentPw, user.getUserPw())) return false;
 
-        // [수정] EncryptUtil.encHashSHA256() 직접 호출 -> passwordEncoder.encode()로 교체
         user.changePassword(passwordEncoder.encode(newPw));
         userInfoRepository.save(user);
         return true;

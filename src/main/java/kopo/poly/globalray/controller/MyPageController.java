@@ -24,11 +24,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * [변경 사항 - extractUserId 호출 방식]
- * 이전: GlobalControllerAdvice.extractUserId(principal) (강결합)
- * 이후: SecurityUtil.extractUserId(principal) (유틸 클래스 의존)
- */
 @Slf4j
 @Controller
 @RequestMapping("/mypage")
