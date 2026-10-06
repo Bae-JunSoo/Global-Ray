@@ -9,6 +9,7 @@ import java.util.List;
 @Builder
 public class ChatResponseDto {
     private String answer;
+    private boolean aiAnswered;
     private List<String> keywords;
     private List<ChatSourceDto> sources;
 }
