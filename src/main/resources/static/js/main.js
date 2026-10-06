@@ -77,6 +77,8 @@ document.addEventListener('click', function(e) {
         handleDeleteAccount();
     } else if (action === 'google-pw-info') {
         showAlert(target.dataset.message || 'Google 계정은 Google에서 비밀번호를 변경해주세요.');
+    } else if (action === 'toggle-comment-edit') {
+        target.closest('.comment-item')?.classList.toggle('editing');
     }
 });
 

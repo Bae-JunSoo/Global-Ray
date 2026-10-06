@@ -11,5 +11,6 @@ public interface IBoardService {
     void updatePost(Long id, String title, String content, String userId);
     void deletePost(Long id, String userId);
     void addComment(Long boardId, String content, String userId);
+    void updateComment(Long commentId, String content, String userId);
     void deleteComment(Long commentId, String userId);
 }

@@ -31,4 +31,11 @@ public class BoardCommentEntity {
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime regDt;
+
+    private LocalDateTime modDt;
+
+    public void update(String content) {
+        this.content = content;
+        this.modDt = LocalDateTime.now();
+    }
 }
