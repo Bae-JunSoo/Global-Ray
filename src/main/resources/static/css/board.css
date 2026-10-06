@@ -318,6 +318,23 @@
 }
 .btn-back:hover { color: var(--text); }
 
+.post-owner-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.btn-edit {
+    padding: 6px 16px;
+    border: 1px solid #1a73e8;
+    border-radius: 6px;
+    color: #1a73e8;
+    font-size: 0.82rem;
+    text-decoration: none;
+    transition: all .15s;
+}
+.btn-edit:hover { background: #1a73e8; color: #fff; }
+
 .btn-delete {
     padding: 6px 16px;
     background: none;

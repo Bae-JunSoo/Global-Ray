@@ -13,7 +13,9 @@ public class BoardDto {
     private String title;
     private String content;
     private LocalDateTime regDt;
+    private LocalDateTime modDt;
     private int viewCount;
     private int commentCount;
+    private boolean mine;
     private List<BoardCommentDto> comments;
 }

@@ -50,11 +50,29 @@ public class BoardController {
     }
 
     @GetMapping("/{id}")
-    public String detail(@PathVariable Long id, Model model) {
-        BoardDto post = boardService.getPost(id);
+    public String detail(@PathVariable Long id, Principal principal, Model model) {
+        BoardDto post = boardService.getPost(id, SecurityUtil.extractUserId(principal));
         model.addAttribute("post", post);
         model.addAttribute("pageTitle", post.getTitle());
         return "board/detail";
+    }
+
+    @GetMapping("/{id}/edit")
+    @PreAuthorize("isAuthenticated()")
+    public String editPage(@PathVariable Long id, Principal principal, Model model) {
+        model.addAttribute("post", boardService.getPostForEdit(id, SecurityUtil.extractUserId(principal)));
+        model.addAttribute("pageTitle", "글 수정");
+        return "board/write";
+    }
+
+    @PostMapping("/{id}/edit")
+    @PreAuthorize("isAuthenticated()")
+    public String edit(@PathVariable Long id,
+                       @RequestParam String title,
+                       @RequestParam String content,
+                       Principal principal) {
+        boardService.updatePost(id, title, content, SecurityUtil.extractUserId(principal));
+        return "redirect:/board/" + id;
     }
 
     @PostMapping("/{id}/delete")
