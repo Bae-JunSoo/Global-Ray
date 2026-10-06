@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface IChatBotService {
 
-    ChatResponseDto ask(String userId, String question) throws Exception;
+    ChatResponseDto ask(String userId, String question);
 
     List<ChatHistoryDto> getHistory(String userId);
 

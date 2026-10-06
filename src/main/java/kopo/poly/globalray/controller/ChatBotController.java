@@ -38,8 +38,8 @@ public class ChatBotController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
             log.error("챗봇 처리 실패 - userId: {}", userId, e);
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body(Map.of("message", "AI 답변을 가져오지 못했습니다. 잠시 후 다시 시도해주세요."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요."));
         }
     }
 

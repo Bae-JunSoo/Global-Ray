@@ -45,6 +45,8 @@ public class ChatBotServiceImpl implements IChatBotService {
 
     private static final String NO_KEYWORD_ANSWER =
             "질문에서 검색할 키워드를 찾지 못했습니다.\n인물, 국가, 기업, 사건 이름처럼 구체적인 단어를 넣어 질문해주세요.";
+    private static final String AI_UNAVAILABLE_ANSWER =
+            "현재 AI 답변을 생성할 수 없습니다.\n대신 질문과 관련된 기사를 찾아드렸어요. 아래 기사를 확인해주세요.";
     private static final String NO_NEWS_ANSWER =
             "죄송합니다. 해당 주제와 관련된 뉴스를 찾을 수 없습니다.\nGlobalRay에 수집된 뉴스와 관련된 질문을 해주세요.";
 
@@ -54,7 +56,7 @@ public class ChatBotServiceImpl implements IChatBotService {
 
     // 수 초 걸리는 Gemini 호출 동안 DB 커넥션을 잡지 않도록 트랜잭션 미적용 (save()는 자체 트랜잭션)
     @Override
-    public ChatResponseDto ask(String userId, String question) throws Exception {
+    public ChatResponseDto ask(String userId, String question) {
         String cleanQuestion = CmmUtil.nvl(question).trim();
         if (cleanQuestion.isEmpty()) {
             throw new IllegalArgumentException("질문을 입력해주세요.");
@@ -75,24 +77,43 @@ public class ChatBotServiceImpl implements IChatBotService {
             return ChatResponseDto.builder().answer(NO_NEWS_ANSWER).keywords(keywords).sources(List.of()).build();
         }
 
-        String answer = geminiService.callGeminiApi(buildPrompt(cleanQuestion, relatedNews));
-        if (answer == null || answer.isBlank()) {
-            throw new IllegalStateException("AI 답변이 비어 있습니다.");
+        List<ChatSourceDto> sources = relatedNews.stream().map(this::toSourceDto).toList();
+
+        String answer = callGemini(buildPrompt(cleanQuestion, relatedNews));
+        if (answer == null) {
+            return ChatResponseDto.builder()
+                    .answer(AI_UNAVAILABLE_ANSWER)
+                    .aiAnswered(false)
+                    .keywords(keywords)
+                    .sources(sources)
+                    .build();
         }
 
         chatHistoryRepository.save(ChatHistoryEntity.builder()
                 .userId(userId)
                 .question(cleanQuestion)
                 .keywords(String.join(",", keywords))
-                .answer(answer.trim())
+                .answer(answer)
                 .sourceCount(relatedNews.size())
                 .build());
 
         return ChatResponseDto.builder()
-                .answer(answer.trim())
+                .answer(answer)
+                .aiAnswered(true)
                 .keywords(keywords)
-                .sources(relatedNews.stream().map(this::toSourceDto).toList())
+                .sources(sources)
                 .build();
+    }
+
+    // 사용량 초과·네트워크 오류 등으로 AI만 실패해도 검색된 기사는 보여줄 수 있도록 null로 돌려줌
+    private String callGemini(String prompt) {
+        try {
+            String answer = geminiService.callGeminiApi(prompt);
+            return (answer == null || answer.isBlank()) ? null : answer.trim();
+        } catch (Exception e) {
+            log.warn("챗봇 Gemini 호출 실패 - 관련 기사만 반환: {}", e.getMessage());
+            return null;
+        }
     }
 
     @Override
