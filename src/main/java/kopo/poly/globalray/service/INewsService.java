@@ -6,8 +6,11 @@ import java.util.List;
 
 public interface INewsService {
 
-    // 기사 상세 조회
-    NewsDto getArticleById(String articleId, String loginUserId);
+    // 뉴스 목록 페이징 조회 (catType이 비어 있으면 전체, country가 ALL이면 국가 필터 없음)
+    Page<NewsDto> getNewsList(String catType, String country, int page, String loginUserId);
+
+    // 기사 열람: 조회수 증가 + 상세 조회 + 열람 이력 저장
+    NewsDto viewArticle(String articleId, String loginUserId);
 
     // 키워드 검색
     List<NewsDto> searchNews(String keyword, String loginUserId);
@@ -15,24 +18,6 @@ public interface INewsService {
     // 북마크한 기사 목록 조회
     List<NewsDto> getBookmarkedNews(String userId);
 
-    // 카테고리별 페이징 조회
-    Page<NewsDto> getNewsByCategory(String catType, int page, String loginUserId);
-
-    // 카테고리별 페이징 조회 (국가 필터)
-    Page<NewsDto> getNewsByCategory(String catType, int page, String loginUserId, String country);
-
-    // 메인 페이지용 페이징 조회
-    Page<NewsDto> getMainNews(int page, String loginUserId);
-
-    // 메인 페이지용 페이징 조회 (국가 필터)
-    Page<NewsDto> getMainNews(int page, String loginUserId, String country);
-
-    // 조회수 +1 (상세 페이지 진입 시 호출)
-    void increaseViewCount(String articleId);
-
     // 조회수 TOP 10 기사 조회
     List<NewsDto> getTop10ByViewCount();
-
-    // 기사 조회 이력 저장
-    void saveViewHistory(String userId, String articleId, String title);
 }
