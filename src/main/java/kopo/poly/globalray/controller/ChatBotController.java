@@ -37,7 +37,7 @@ public class ChatBotController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
-            log.error("챗봇 AI 호출 실패 - userId: {}, 원인: {}", userId, e.getMessage());
+            log.error("챗봇 처리 실패 - userId: {}", userId, e);
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                     .body(Map.of("message", "AI 답변을 가져오지 못했습니다. 잠시 후 다시 시도해주세요."));
         }
