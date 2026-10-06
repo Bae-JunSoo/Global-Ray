@@ -1,5 +1,6 @@
 package kopo.poly.globalray.service.impl;
 
+import kopo.poly.globalray.exception.NotFoundException;
 import kopo.poly.globalray.dto.UserInfoDto;
 import kopo.poly.globalray.entity.EmailAuthEntity;
 import kopo.poly.globalray.entity.UserInfoEntity;
@@ -8,6 +9,7 @@ import kopo.poly.globalray.repository.EmailAuthRepository;
 import kopo.poly.globalray.repository.UserBookmarkRepository;
 import kopo.poly.globalray.repository.UserInfoRepository;
 import kopo.poly.globalray.service.IEmailService;
+import kopo.poly.globalray.service.ILikeService;
 import kopo.poly.globalray.service.IUserInfoService;
 import kopo.poly.globalray.util.CmmUtil;
 import kopo.poly.globalray.util.EncryptUtil;
@@ -32,6 +34,7 @@ public class UserInfoServiceImpl implements IUserInfoService {
     private final ChatHistoryRepository chatHistoryRepository;
     private final EmailAuthRepository emailAuthRepository;
     private final IEmailService emailService;
+    private final ILikeService likeService;
     // 로그인 시 비교에 쓰는 것과 같은 BCrypt 인코더 (PasswordEncoderConfig)
     private final PasswordEncoder passwordEncoder;
 
@@ -130,7 +133,7 @@ public class UserInfoServiceImpl implements IUserInfoService {
         user.changePassword(passwordEncoder.encode(tempPw));
         userInfoRepository.save(user);
 
-        emailService.sendAuthCode(email, "임시 비밀번호: " + tempPw);
+        emailService.sendTempPassword(email, tempPw);
         log.info("임시 비밀번호 발급 완료 : {}", email);
         return true;
     }
@@ -139,7 +142,7 @@ public class UserInfoServiceImpl implements IUserInfoService {
     @Transactional
     public boolean changePassword(String userId, String currentPw, String newPw) throws Exception {
         UserInfoEntity user = userInfoRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다."));
 
         // BCrypt는 매번 다른 salt를 쓰므로 equals로 비교할 수 없고 matches()로 비교해야 함
         if (!passwordEncoder.matches(currentPw, user.getUserPw())) return false;
@@ -153,7 +156,7 @@ public class UserInfoServiceImpl implements IUserInfoService {
     @Transactional(readOnly = true)
     public UserInfoDto getUserInfo(String userId) {
         UserInfoEntity user = userInfoRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다."));
 
         return UserInfoDto.builder()
                 .userId(user.getUserId())
@@ -169,6 +172,7 @@ public class UserInfoServiceImpl implements IUserInfoService {
     public void deleteUser(String userId) {
         userBookmarkRepository.deleteByUserId(userId);
         chatHistoryRepository.deleteByUserId(userId);
+        likeService.deleteAllByUser(userId);
         userInfoRepository.deleteById(userId);
     }
 

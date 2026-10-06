@@ -90,10 +90,11 @@ public class SecurityConfig {
                                 "/login/oauth2/**", "/oauth2/**",
                                 "/board", "/board/**"
                         ).permitAll()
+                        // AJAX 요청은 로그인 페이지로 리다이렉트되면 JS가 처리할 수 없으므로
+                        // 필터는 통과시키고 컨트롤러에서 비로그인 시 401을 반환
+                        .requestMatchers("/like/toggle", "/bookmark/toggle").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers(
-                                "/mypage/**", "/bookmark/**", "/chatbot/**", "/like/**"
-                        ).authenticated()
+                        .requestMatchers("/mypage/**", "/chatbot/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 // 일반 로그인 설정

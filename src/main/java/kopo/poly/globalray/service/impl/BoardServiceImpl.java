@@ -1,5 +1,6 @@
 package kopo.poly.globalray.service.impl;
 
+import kopo.poly.globalray.exception.NotFoundException;
 import kopo.poly.globalray.dto.BoardCommentDto;
 import kopo.poly.globalray.dto.BoardDto;
 import kopo.poly.globalray.entity.BoardCommentEntity;
@@ -148,7 +149,7 @@ public class BoardServiceImpl implements IBoardService {
 
     private BoardCommentEntity findComment(Long commentId) {
         return boardCommentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new NotFoundException("댓글을 찾을 수 없습니다."));
     }
 
     private void validateComment(String content) {
@@ -162,7 +163,7 @@ public class BoardServiceImpl implements IBoardService {
 
     private BoardEntity findPost(Long id) {
         return boardRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new NotFoundException("게시글을 찾을 수 없습니다."));
     }
 
     private void checkOwner(String ownerId, String userId) {

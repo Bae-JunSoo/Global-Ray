@@ -8,6 +8,7 @@ import kopo.poly.globalray.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -67,12 +68,14 @@ public class NewsController {
             @RequestBody Map<String, String> body,
             Principal principal) {
         if (principal == null) {
-            return ResponseEntity.status(401).body(Map.of("message", "로그인이 필요합니다."));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "로그인이 필요합니다."));
         }
-        boolean added = bookmarkService.toggleBookmark(
-                SecurityUtil.extractUserId(principal),
-                CmmUtil.nvl(body.get("articleUrl"))
-        );
+        String articleUrl = CmmUtil.nvl(body.get("articleUrl")).trim();
+        if (articleUrl.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "기사 정보가 없습니다."));
+        }
+
+        boolean added = bookmarkService.toggleBookmark(SecurityUtil.extractUserId(principal), articleUrl);
         return ResponseEntity.ok(Map.of("bookmarked", added));
     }
 }

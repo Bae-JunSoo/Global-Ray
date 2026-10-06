@@ -10,7 +10,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,12 +23,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Value("${app.admin-email}")
     private String adminEmail;
 
-    /**
-     * Spring Security 로그인 처리 시 호출 → Service를 경유하여 DB 조회
-     * 비밀번호 비교는 SecurityConfig 의 DaoAuthenticationProvider + BCryptPasswordEncoder 가 처리
-     */
+    // 사용자 조회만 담당하고, 비밀번호 비교는 DaoAuthenticationProvider가 BCrypt로 처리
     @Override
-    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
         UserInfoDto user = userInfoService.getUserInfoForAuth(userId);
 
