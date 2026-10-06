@@ -7,10 +7,8 @@ import kopo.poly.globalray.util.CmmUtil;
 import kopo.poly.globalray.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -36,15 +34,10 @@ public class NewsController {
     public String newsList(@PathVariable String catType,
                            @RequestParam(required = false, defaultValue = "0") int page,
                            @RequestParam(required = false, defaultValue = "ALL") String country,
-                           @AuthenticationPrincipal UserDetails userDetails,
-                           @AuthenticationPrincipal OAuth2User oAuth2User,
+                           Principal principal,
                            Model model) {
-        String userId = SecurityUtil.extractUserId(userDetails, oAuth2User);
-        boolean filtered = country != null && !country.isBlank() && !"ALL".equals(country);
-
-        org.springframework.data.domain.Page<NewsDto> newsPage = filtered
-                ? newsService.getNewsByCategory(CmmUtil.nvl(catType), page, userId, country)
-                : newsService.getNewsByCategory(CmmUtil.nvl(catType), page, userId);
+        String userId = SecurityUtil.extractUserId(principal);
+        Page<NewsDto> newsPage = newsService.getNewsList(catType, country, page, userId);
 
         int pageGroupStart = (page / 10) * 10;
         int pageGroupEnd = Math.min(pageGroupStart + 10, newsPage.getTotalPages());
@@ -61,21 +54,9 @@ public class NewsController {
 
     @GetMapping("/news/detail/{articleId}")
     public String newsDetail(@PathVariable String articleId,
-                             @AuthenticationPrincipal UserDetails userDetails,
-                             @AuthenticationPrincipal OAuth2User oAuth2User,
+                             Principal principal,
                              Model model) {
-        String userId = SecurityUtil.extractUserId(userDetails, oAuth2User);
-        String cleanId = CmmUtil.nvl(articleId);
-
-        newsService.increaseViewCount(cleanId);
-
-        NewsDto article = newsService.getArticleById(cleanId, userId);
-
-        if (article != null) {
-            String title = article.getTitleKor() != null ? article.getTitleKor() : article.getTitle();
-            newsService.saveViewHistory(userId, cleanId, title);
-        }
-
+        NewsDto article = newsService.viewArticle(articleId, SecurityUtil.extractUserId(principal));
         model.addAttribute("article", article);
         return "news/detail";
     }

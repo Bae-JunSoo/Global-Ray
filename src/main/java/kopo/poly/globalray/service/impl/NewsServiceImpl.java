@@ -18,17 +18,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import org.springframework.data.domain.Sort;
-
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -36,79 +36,63 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class NewsServiceImpl implements INewsService {
 
+    private static final int PAGE_SIZE = 10;
+
     private final NewsArticleRepository newsArticleRepository;
     private final UserBookmarkRepository userBookmarkRepository;
     private final UserLikeRepository userLikeRepository;
     private final ViewHistoryRepository viewHistoryRepository;
     private final IGeminiService geminiService;
 
-    private Set<String> getBookmarkedUrls(String loginUserId) {
-        if (loginUserId == null) return new HashSet<>();
-        return userBookmarkRepository.findByUserIdOrderByRegDtDesc(loginUserId)
-                .stream()
-                .map(UserBookmarkEntity::getArticleUrl)
-                .collect(Collectors.toSet());
+    // 카테고리와 국가 필터 조합에 맞는 쿼리를 고름 (catType이 비어 있으면 전체, country가 ALL이면 필터 없음)
+    @Override
+    @Transactional(readOnly = true)
+    public Page<NewsDto> getNewsList(String catType, String country, int page, String loginUserId) {
+        Pageable pageable = PageRequest.of(Math.max(page, 0), PAGE_SIZE);
+        boolean hasCategory = catType != null && !catType.isBlank();
+        boolean hasCountry = country != null && !country.isBlank() && !"ALL".equals(country);
+        List<String> sourceNames = hasCountry ? CountryMapper.getSourceNames(country) : List.of();
+
+        Page<NewsArticleEntity> articles;
+        if (hasCategory && hasCountry) {
+            articles = newsArticleRepository.findByCatTypeAndSourceNameInAndTitleKorIsNotNull(catType, sourceNames, pageable);
+        } else if (hasCategory) {
+            articles = newsArticleRepository.findByCatTypeAndTitleKorIsNotNullOrderByRegDtDesc(catType, pageable);
+        } else if (hasCountry) {
+            articles = newsArticleRepository.findBySourceNameInAndTitleKorIsNotNull(sourceNames, pageable);
+        } else {
+            articles = newsArticleRepository.findByTitleKorIsNotNullOrderByRegDtDesc(pageable);
+        }
+        return articles.map(dtoMapper(loginUserId));
     }
 
-    private Set<String> getLikedUrls(String loginUserId) {
-        if (loginUserId == null) return new HashSet<>();
-        return userLikeRepository.findByUserId(loginUserId)
-                .stream()
-                .map(UserLikeEntity::getArticleUrl)
-                .collect(Collectors.toSet());
-    }
-
-    // 상세 요약은 비용이 커서 수집 때 만들지 않고, 처음 열람될 때 한 번 생성해 저장 (요약 저장이 있어 readOnly 아님)
+    // 조회수 증가 → 상세 조회(필요 시 요약 생성) → 열람 이력 저장을 한 흐름으로 처리
+    // 트랜잭션은 MariaDB의 북마크·좋아요 조회에만 적용되고, MongoDB 쓰기는 연산 하나하나가 원자적으로 처리됨
     @Override
     @Transactional
-    public NewsDto getArticleById(String articleId, String loginUserId) {
+    public NewsDto viewArticle(String articleId, String loginUserId) {
+        // 상세 화면에 증가된 조회수가 보이도록 먼저 증가시킴 ($inc는 없는 기사면 아무 일도 하지 않음)
+        newsArticleRepository.increaseViewCount(articleId);
+
         NewsArticleEntity entity = newsArticleRepository.findById(articleId)
                 .orElseThrow(() -> new IllegalArgumentException("기사를 찾을 수 없습니다."));
 
-        // summaryKor 없고 본문 있으면 on-demand 심화요약 생성
-        if ((entity.getSummaryKor() == null || entity.getSummaryKor().isBlank())
-                && entity.getContentFull() != null
-                && !entity.getContentFull().isBlank()) {
+        generateSummaryIfAbsent(entity);
+        saveViewHistory(loginUserId, entity);
 
-            try {
-                log.info("on-demand 심화요약 시작 : {}", entity.getTitleKor());
-
-                String content = CmmUtil.truncate(entity.getContentFull(), 3000);
-
-                // 수집 스케줄러가 한도를 다 써도 상세 요약은 동작하도록 별도 키(key2) 사용
-                String summaryKor = geminiService.callGeminiApiWithKey2(
-                        "다음 영문 뉴스 기사를 한국어로 번역하고 핵심 내용을 상세하게 요약해주세요. " +
-                                "마크다운 기호(###, **, ## 등)를 절대 사용하지 말고 순수 텍스트로만 작성해주세요. " +
-                                "300자 내외로 작성해주세요:\n\n" + content);
-
-                if (summaryKor != null && !summaryKor.isBlank()) {
-                    entity.updateSummaryKor(summaryKor.trim());
-                    newsArticleRepository.save(entity);
-                    log.info("on-demand 심화요약 완료 : {}", entity.getTitleKor());
-                }
-
-            } catch (Exception e) {
-                // 요약 생성 실패해도 페이지는 정상 표시 (요약 없이 보여줌)
-                log.warn("on-demand 심화요약 실패 : {}", e.getMessage());
-            }
-        }
-
-        Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
-        Set<String> likedUrls = getLikedUrls(loginUserId);
-        return toDto(entity, bookmarkedUrls, likedUrls);
+        return dtoMapper(loginUserId).apply(entity);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<NewsDto> searchNews(String keyword, String loginUserId) {
-        Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
-        Set<String> likedUrls = getLikedUrls(loginUserId);
+        // 검색어가 그대로 정규식에 들어가면 "(" 같은 문자로 쿼리 오류가 나므로 일반 문자열로 감쌈
+        String safeKeyword = Pattern.quote(CmmUtil.nvl(keyword).trim());
         return newsArticleRepository.findByTitleKorContainingOrderByRegDtDesc(
-                        keyword,
-                        Sort.by(Sort.Direction.DESC, "regDt"))
+                        safeKeyword, Sort.by(Sort.Direction.DESC, "regDt"))
                 .stream()
-                .map(a -> toDto(a, bookmarkedUrls, likedUrls))
-                .collect(Collectors.toList());
+                .map(dtoMapper(loginUserId))
+                .toList();
     }
 
     @Override
@@ -119,83 +103,19 @@ public class NewsServiceImpl implements INewsService {
 
         List<String> urls = bookmarks.stream()
                 .map(UserBookmarkEntity::getArticleUrl)
-                .collect(Collectors.toList());
+                .toList();
 
+        // 기사를 한 건씩 조회하지 않고 URL 목록으로 한 번에 가져와 N+1 쿼리를 방지
         Map<String, NewsArticleEntity> articleMap = newsArticleRepository.findByUrlIn(urls)
                 .stream()
                 .collect(Collectors.toMap(NewsArticleEntity::getUrl, Function.identity()));
 
-        Set<String> bookmarkedUrlSet = new HashSet<>(urls);
-        Set<String> likedUrls = getLikedUrls(userId);
+        Function<NewsArticleEntity, NewsDto> mapper = dtoMapper(userId);
         return bookmarks.stream()
                 .map(bm -> articleMap.get(bm.getArticleUrl()))
-                .filter(article -> article != null)
-                .map(article -> toDto(article, bookmarkedUrlSet, likedUrls))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<NewsDto> getNewsByCategory(String catType, int page, String loginUserId) {
-        Pageable pageable = PageRequest.of(page, 10);
-        Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
-        Set<String> likedUrls = getLikedUrls(loginUserId);
-        return newsArticleRepository
-                .findByCatTypeAndTitleKorIsNotNullOrderByRegDtDesc(catType, pageable)
-                .map(a -> toDto(a, bookmarkedUrls, likedUrls));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<NewsDto> getNewsByCategory(String catType, int page, String loginUserId, String country) {
-        Pageable pageable = PageRequest.of(page, 10);
-        Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
-        Set<String> likedUrls = getLikedUrls(loginUserId);
-        List<String> sourceNames = CountryMapper.getSourceNames(country);
-        return newsArticleRepository
-                .findByCatTypeAndSourceNameInAndTitleKorIsNotNull(catType, sourceNames, pageable)
-                .map(a -> toDto(a, bookmarkedUrls, likedUrls));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<NewsDto> getMainNews(int page, String loginUserId) {
-        Pageable pageable = PageRequest.of(page, 10);
-        Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
-        Set<String> likedUrls = getLikedUrls(loginUserId);
-        return newsArticleRepository
-                .findByTitleKorIsNotNullOrderByRegDtDesc(pageable)
-                .map(a -> toDto(a, bookmarkedUrls, likedUrls));
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public Page<NewsDto> getMainNews(int page, String loginUserId, String country) {
-        Pageable pageable = PageRequest.of(page, 10);
-        Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
-        Set<String> likedUrls = getLikedUrls(loginUserId);
-        List<String> sourceNames = CountryMapper.getSourceNames(country);
-        return newsArticleRepository
-                .findBySourceNameInAndTitleKorIsNotNull(sourceNames, pageable)
-                .map(a -> toDto(a, bookmarkedUrls, likedUrls));
-    }
-
-    // 조회수 +1: Repository의 $inc 원자적 연산 위임
-    @Override
-    @Transactional
-    public void increaseViewCount(String articleId) {
-        newsArticleRepository.increaseViewCount(articleId);
-    }
-
-    @Override
-    @Transactional
-    public void saveViewHistory(String userId, String articleId, String title) {
-        viewHistoryRepository.save(ViewHistoryEntity.builder()
-                .userId((userId == null || userId.isBlank()) ? "비회원" : userId)
-                .articleId(articleId)
-                .title(title)
-                .viewDt(LocalDateTime.now())
-                .build());
+                .filter(Objects::nonNull)
+                .map(mapper)
+                .toList();
     }
 
     @Override
@@ -204,8 +124,65 @@ public class NewsServiceImpl implements INewsService {
         return newsArticleRepository
                 .findTop10ByTitleKorIsNotNullOrderByViewCountDesc(PageRequest.of(0, 10))
                 .stream()
-                .map(a -> toDto(a, new HashSet<>(), new HashSet<>()))
-                .collect(Collectors.toList());
+                .map(article -> toDto(article, Set.of(), Set.of()))
+                .toList();
+    }
+
+    // 상세 요약은 비용이 커서 수집 때 만들지 않고, 처음 열람될 때 한 번 생성해 저장
+    private void generateSummaryIfAbsent(NewsArticleEntity entity) {
+        boolean hasSummary = entity.getSummaryKor() != null && !entity.getSummaryKor().isBlank();
+        boolean hasContent = entity.getContentFull() != null && !entity.getContentFull().isBlank();
+        if (hasSummary || !hasContent) return;
+
+        try {
+            String content = CmmUtil.truncate(entity.getContentFull(), 3000);
+            // 수집 스케줄러가 한도를 다 써도 상세 요약은 동작하도록 별도 키(key2) 사용
+            String summaryKor = geminiService.callGeminiApiWithKey2(
+                    "다음 영문 뉴스 기사를 한국어로 번역하고 핵심 내용을 상세하게 요약해주세요. " +
+                            "마크다운 기호(###, **, ## 등)를 절대 사용하지 말고 순수 텍스트로만 작성해주세요. " +
+                            "300자 내외로 작성해주세요:\n\n" + content);
+
+            if (summaryKor != null && !summaryKor.isBlank()) {
+                entity.updateSummaryKor(summaryKor.trim());
+                newsArticleRepository.save(entity);
+                log.info("상세 요약 생성 완료 : {}", entity.getTitleKor());
+            }
+        } catch (Exception e) {
+            // 요약 생성에 실패해도 기사 화면은 요약 없이 정상 표시
+            log.warn("상세 요약 생성 실패 : {}", e.getMessage());
+        }
+    }
+
+    private void saveViewHistory(String loginUserId, NewsArticleEntity entity) {
+        viewHistoryRepository.save(ViewHistoryEntity.builder()
+                .userId((loginUserId == null || loginUserId.isBlank()) ? "비회원" : loginUserId)
+                .articleId(entity.getArticleId())
+                .title(entity.getTitleKor() != null ? entity.getTitleKor() : entity.getTitle())
+                .viewDt(LocalDateTime.now())
+                .build());
+    }
+
+    // 목록 조회마다 반복되던 "내 북마크·좋아요 목록 조회 후 DTO 변환"을 한 곳으로 모음
+    private Function<NewsArticleEntity, NewsDto> dtoMapper(String loginUserId) {
+        Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
+        Set<String> likedUrls = getLikedUrls(loginUserId);
+        return article -> toDto(article, bookmarkedUrls, likedUrls);
+    }
+
+    private Set<String> getBookmarkedUrls(String loginUserId) {
+        if (loginUserId == null) return Set.of();
+        return userBookmarkRepository.findByUserIdOrderByRegDtDesc(loginUserId)
+                .stream()
+                .map(UserBookmarkEntity::getArticleUrl)
+                .collect(Collectors.toSet());
+    }
+
+    private Set<String> getLikedUrls(String loginUserId) {
+        if (loginUserId == null) return Set.of();
+        return userLikeRepository.findByUserId(loginUserId)
+                .stream()
+                .map(UserLikeEntity::getArticleUrl)
+                .collect(Collectors.toSet());
     }
 
     private NewsDto toDto(NewsArticleEntity article, Set<String> bookmarkedUrls, Set<String> likedUrls) {
