@@ -32,6 +32,53 @@
 }
 .btn-write:hover { background: #1558b0; }
 
+/* ===== 검색 ===== */
+.board-search {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.board-search input[type="text"] {
+    width: 280px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-family: inherit;
+    outline: none;
+    transition: border .15s;
+}
+.board-search input[type="text"]:focus { border-color: #1a73e8; }
+
+.board-search button {
+    padding: 8px 16px;
+    background: #1a73e8;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+}
+.board-search button:hover { background: #1558b0; }
+
+.board-search-reset {
+    font-size: 0.82rem;
+    color: var(--text-sub);
+    text-decoration: none;
+}
+.board-search-reset:hover { color: var(--text); text-decoration: underline; }
+
+.board-search-result {
+    font-size: 0.85rem;
+    color: var(--text-sub);
+    margin-bottom: 10px;
+}
+.board-search-result strong { color: #1a73e8; }
+
 /* ===== 목록 ===== */
 .board-table {
     width: 100%;

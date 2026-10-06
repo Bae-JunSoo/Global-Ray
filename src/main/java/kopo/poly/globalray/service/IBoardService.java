@@ -4,7 +4,7 @@ import kopo.poly.globalray.dto.BoardDto;
 import org.springframework.data.domain.Page;
 
 public interface IBoardService {
-    Page<BoardDto> getPostList(int page);
+    Page<BoardDto> getPostList(int page, String keyword);
     BoardDto getPost(Long id);
     void writePost(String title, String content, String userId);
     void deletePost(Long id, String userId);

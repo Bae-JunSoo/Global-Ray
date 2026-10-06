@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface BoardRepository extends JpaRepository<BoardEntity, Long> {
     Page<BoardEntity> findAllByOrderByRegDtDesc(Pageable pageable);
+
+    Page<BoardEntity> findByTitleContainingOrderByRegDtDesc(String keyword, Pageable pageable);
 }
