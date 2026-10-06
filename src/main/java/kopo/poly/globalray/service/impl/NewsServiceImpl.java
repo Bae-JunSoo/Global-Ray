@@ -1,5 +1,6 @@
 package kopo.poly.globalray.service.impl;
 
+import kopo.poly.globalray.exception.NotFoundException;
 import kopo.poly.globalray.dto.NewsDto;
 import kopo.poly.globalray.entity.NewsArticleEntity;
 import kopo.poly.globalray.entity.UserBookmarkEntity;
@@ -75,7 +76,7 @@ public class NewsServiceImpl implements INewsService {
         newsArticleRepository.increaseViewCount(articleId);
 
         NewsArticleEntity entity = newsArticleRepository.findById(articleId)
-                .orElseThrow(() -> new IllegalArgumentException("기사를 찾을 수 없습니다."));
+                .orElseThrow(() -> new NotFoundException("기사를 찾을 수 없습니다."));
 
         generateSummaryIfAbsent(entity);
         saveViewHistory(loginUserId, entity);

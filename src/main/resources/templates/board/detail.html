@@ -38,10 +38,10 @@
                 <a th:href="@{/board}" class="btn-back">← 목록</a>
                 <div th:if="${post.mine}" class="post-owner-actions">
                     <a th:href="@{/board/{id}/edit(id=${post.id})}" class="btn-edit">수정</a>
-                    <form th:action="@{/board/{id}/delete(id=${post.id})}" method="post"
-                          onsubmit="return confirm('게시글을 삭제하시겠습니까?')">
+                    <form th:action="@{/board/{id}/delete(id=${post.id})}" method="post">
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                        <button type="submit" class="btn-delete">삭제</button>
+                        <button type="submit" class="btn-delete"
+                                data-action="confirm-submit" data-message="게시글을 삭제하시겠습니까?">삭제</button>
                     </form>
                 </div>
             </div>
@@ -81,11 +81,11 @@
 
                     <div th:if="${comment.mine}" class="comment-owner-actions">
                         <button type="button" class="btn-comment-edit" data-action="toggle-comment-edit">수정</button>
-                        <form th:action="@{/board/comment/{cid}/delete(cid=${comment.id})}" method="post"
-                              onsubmit="return confirm('댓글을 삭제하시겠습니까?')">
+                        <form th:action="@{/board/comment/{cid}/delete(cid=${comment.id})}" method="post">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <input type="hidden" name="boardId" th:value="${post.id}">
-                            <button type="submit" class="btn-comment-delete">삭제</button>
+                            <button type="submit" class="btn-comment-delete"
+                                    data-action="confirm-submit" data-message="댓글을 삭제하시겠습니까?">삭제</button>
                         </form>
                     </div>
                 </div>

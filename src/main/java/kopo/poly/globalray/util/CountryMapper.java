@@ -54,7 +54,6 @@ public class CountryMapper {
             Map.entry("Der Spiegel",               "EU"),
             Map.entry("Le Monde",                  "EU"),
             Map.entry("Euronews",                  "EU"),
-            Map.entry("Al Jazeera English",        "EU"),
 
             // 일본
             Map.entry("The Japan Times",           "JP"),

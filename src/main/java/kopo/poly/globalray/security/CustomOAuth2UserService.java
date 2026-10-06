@@ -11,7 +11,6 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,8 +26,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Value("${app.admin-email}")
     private String adminEmail;
 
+    // 트랜잭션은 findOrCreateOAuth2User()에 있음 (여기에 걸면 구글 API 호출 동안 DB 커넥션을 붙잡게 됨)
     @Override
-    @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
@@ -39,7 +38,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         String newUserId = "GOOGLE_" + sub;
 
-        // Repository 직접 접근 제거 → IUserInfoService 경유 (@Transactional 적용됨)
         UserInfoDto user = userInfoService.findOrCreateOAuth2User(newUserId, email, name, "GOOGLE");
 
         log.info("Google 로그인 유저 : {} (userId: {})", email, user.getUserId());

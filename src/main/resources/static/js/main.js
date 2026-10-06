@@ -79,6 +79,12 @@ document.addEventListener('click', function(e) {
         showAlert(target.dataset.message || 'Google 계정은 Google에서 비밀번호를 변경해주세요.');
     } else if (action === 'toggle-comment-edit') {
         target.closest('.comment-item')?.classList.toggle('editing');
+    } else if (action === 'confirm-submit') {
+        // 제출 버튼의 기본 동작을 막고, 확인 모달에서 확인을 눌렀을 때만 폼 제출
+        e.preventDefault();
+        showConfirm(target.dataset.message).then(ok => {
+            if (ok) target.closest('form').submit();
+        });
     }
 });
 

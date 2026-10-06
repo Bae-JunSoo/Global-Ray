@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class LikeServiceImpl implements ILikeService {
@@ -34,4 +36,12 @@ public class LikeServiceImpl implements ILikeService {
         return true;
     }
 
+    // 좋아요 행만 지우면 기사의 좋아요 수(MongoDB)가 그대로 남으므로 수를 먼저 되돌린 뒤 삭제
+    @Override
+    @Transactional
+    public void deleteAllByUser(String userId) {
+        List<UserLikeEntity> likes = userLikeRepository.findByUserId(userId);
+        likes.forEach(like -> newsArticleRepository.decreaseLikeCount(like.getArticleUrl()));
+        userLikeRepository.deleteAll(likes);
+    }
 }

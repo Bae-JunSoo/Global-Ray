@@ -9,5 +9,4 @@ public interface UserLikeRepository extends JpaRepository<UserLikeEntity, Long> 
 
     List<UserLikeEntity> findByUserId(String userId);
     Optional<UserLikeEntity> findByUserIdAndArticleUrl(String userId, String articleUrl);
-    void deleteByUserId(String userId);
 }
