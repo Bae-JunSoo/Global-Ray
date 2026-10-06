@@ -3,7 +3,7 @@ package kopo.poly.globalray.dto;
 import lombok.*;
 import java.time.LocalDateTime;
 
-@Getter @Setter
+@Getter
 @NoArgsConstructor @AllArgsConstructor
 @Builder
 public class NewsDto {
@@ -11,7 +11,7 @@ public class NewsDto {
     private String articleId;
     private String catType;
     private String title;
-    private String titleKor;     // 한국어 번역 제목 추가
+    private String titleKor;
     private String sourceName;
     private String author;
     private String url;
@@ -25,9 +25,4 @@ public class NewsDto {
     private long viewCount;
     private long likeCount;
     private String country;
-
-    // 페이징 정보
-    private int currentPage;
-    private int totalPages;
-    private long totalElements;
 }

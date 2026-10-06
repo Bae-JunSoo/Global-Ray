@@ -8,9 +8,6 @@ public interface IUserInfoService {
     // 아이디 중복 확인
     boolean isUserIdDuplicate(String userId);
 
-    // 이메일 중복 확인
-    boolean isEmailDuplicate(String email);
-
     // 이메일 인증코드 발송
     void sendEmailAuthCode(String email) throws Exception;
 

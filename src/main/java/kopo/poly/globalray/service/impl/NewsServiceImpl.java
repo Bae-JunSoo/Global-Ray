@@ -58,46 +58,7 @@ public class NewsServiceImpl implements INewsService {
                 .collect(Collectors.toSet());
     }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<NewsDto> getNewsByCategory(String catType, String loginUserId) {
-        Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
-        Set<String> likedUrls = getLikedUrls(loginUserId);
-        return newsArticleRepository
-                .findByCatTypeAndTitleKorIsNotNullOrderByRegDtDesc(catType)
-                .stream()
-                .map(a -> toDto(a, bookmarkedUrls, likedUrls))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<NewsDto> getTop10ByCategory(String catType, String loginUserId) {
-        Set<String> bookmarkedUrls = getBookmarkedUrls(loginUserId);
-        Set<String> likedUrls = getLikedUrls(loginUserId);
-        return newsArticleRepository
-                .findTop10ByCatTypeAndTitleKorIsNotNullOrderByRegDtDesc(catType, PageRequest.of(0, 10))
-                .stream()
-                .map(a -> toDto(a, bookmarkedUrls, likedUrls))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * 기사 상세 조회 + on-demand 심화요약 자동 생성
-     *
-     * [이전 문제]
-     * on-demand 심화요약 생성 로직이 NewsController.newsDetail() 안에 있었음
-     * - Controller 가 NewsArticleRepository 에 직접 의존 (계층 위반)
-     * - Controller 가 IGeminiService 에 직접 의존 (외부 API 호출이 Controller 에)
-     * - "요약이 없으면 만들어라" 는 비즈니스 규칙이 표현 계층에 노출됨
-     *
-     * [해결]
-     * Service 레이어로 이동: Controller 는 getArticleById() 결과만 받아 View 에 전달
-     * 요약 생성 여부 판단, Gemini 호출, DB 저장이 모두 Service 안에서 처리됨
-     *
-     * [트랜잭션]
-     * summaryKor 저장이 있으므로 readOnly = false (기본값) 사용
-     */
+    // 상세 요약은 비용이 커서 수집 때 만들지 않고, 처음 열람될 때 한 번 생성해 저장 (요약 저장이 있어 readOnly 아님)
     @Override
     @Transactional
     public NewsDto getArticleById(String articleId, String loginUserId) {
@@ -114,7 +75,7 @@ public class NewsServiceImpl implements INewsService {
 
                 String content = CmmUtil.truncate(entity.getContentFull(), 3000);
 
-                // 심화요약 전용 키(key2) 사용 → 스케줄러 번역 API 키와 분리
+                // 수집 스케줄러가 한도를 다 써도 상세 요약은 동작하도록 별도 키(key2) 사용
                 String summaryKor = geminiService.callGeminiApiWithKey2(
                         "다음 영문 뉴스 기사를 한국어로 번역하고 핵심 내용을 상세하게 요약해주세요. " +
                                 "마크다운 기호(###, **, ## 등)를 절대 사용하지 말고 순수 텍스트로만 작성해주세요. " +

@@ -24,7 +24,7 @@ public class EmailAuthEntity {
     private String authCode;
 
     @Column(name = "IS_VERIFIED", nullable = false)
-    private Integer isVerified = 0;
+    private Integer isVerified;
 
     @Column(name = "EXPIRE_DT", nullable = false)
     private LocalDateTime expireDt;

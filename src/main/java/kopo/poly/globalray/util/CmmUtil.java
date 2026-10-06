@@ -2,6 +2,8 @@ package kopo.poly.globalray.util;
 
 public class CmmUtil {
 
+    private CmmUtil() {}
+
     public static String nvl(String str, String chgStr) {
         if (str == null || str.isEmpty()) return chgStr;
         return str;
@@ -11,22 +13,7 @@ public class CmmUtil {
         return nvl(str, "");
     }
 
-    public static String checked(String str, String comStr) {
-        return str.equals(comStr) ? " checked" : "";
-    }
-
-    public static String checked(String[] str, String comStr) {
-        for (String s : str) {
-            if (s.equals(comStr)) return " checked";
-        }
-        return "";
-    }
-
-    public static String select(String str, String comStr) {
-        return str.equals(comStr) ? " selected" : "";
-    }
-
-    // 본문 글자수 제한 + 특수문자 제거 (Gemini 토큰 절약용)
+    // 본문 글자수 제한 + 제어문자 제거 (Gemini 토큰 절약용)
     public static String truncate(String content, int maxLength) {
         if (content == null || content.isBlank()) return "";
         String cleaned = content

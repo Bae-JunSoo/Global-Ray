@@ -34,14 +34,10 @@ public class SecurityConfig {
     private final LoginSuccessHandler loginSuccessHandler;
     private final PasswordEncoder passwordEncoder; // PasswordEncoderConfig에서 주입
 
-    // Spring Security 표준 AuthenticationProvider
-    // - CustomUserDetailsService.loadUserByUsername()으로 DB 조회
-    // - passwordEncoder().matches()로 비밀번호 비교
-    // - 위 두 단계는 Spring Security가 자동으로 처리하므로 별도 구현 불필요
+    // 표준 인증 처리기: loadUserByUsername()으로 사용자를 조회하고 passwordEncoder.matches()로 비밀번호를 비교
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-        // [수정] Spring Security 7부터 기본 생성자 + setUserDetailsService()가 제거됨
-        //        -> 생성자에서 UserDetailsService를 직접 주입받는 방식으로 변경
+        // Spring Security 7부터 UserDetailsService는 생성자로만 넘길 수 있음
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
         return provider;
@@ -85,8 +81,6 @@ public class SecurityConfig {
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
                 )
-                // [수정] customAuthenticationProvider() (SHA256 비교+예외처리 직접 구현) 삭제
-                //        -> authenticationProvider() (DaoAuthenticationProvider, Spring 표준)로 교체
                 .authenticationProvider(authenticationProvider())
                 // 접근 권한 설정
                 .authorizeHttpRequests(auth -> auth
