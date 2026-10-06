@@ -10,15 +10,18 @@ import kopo.poly.globalray.service.IBoardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class BoardServiceImpl implements IBoardService {
+
+    private static final int MAX_TITLE_LENGTH = 200;
+    private static final int MAX_COMMENT_LENGTH = 1000;
 
     private final BoardRepository boardRepository;
     private final BoardCommentRepository boardCommentRepository;
@@ -44,9 +47,8 @@ public class BoardServiceImpl implements IBoardService {
 
     @Override
     @Transactional
-    public BoardDto getPost(Long id) {
-        BoardEntity entity = boardRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+    public BoardDto getPost(Long id, String loginUserId) {
+        BoardEntity entity = findPost(id);
         entity.increaseViewCount();
 
         List<BoardCommentDto> comments = boardCommentRepository
@@ -56,49 +58,77 @@ public class BoardServiceImpl implements IBoardService {
                         .id(c.getId())
                         .content(c.getContent())
                         .regDt(c.getRegDt())
+                        .mine(c.getUserId().equals(loginUserId))
                         .build())
-                .collect(Collectors.toList());
+                .toList();
 
         return BoardDto.builder()
                 .id(entity.getId())
                 .title(entity.getTitle())
                 .content(entity.getContent())
                 .regDt(entity.getRegDt())
+                .modDt(entity.getModDt())
                 .viewCount(entity.getViewCount())
                 .commentCount(comments.size())
+                .mine(entity.getUserId().equals(loginUserId))
                 .comments(comments)
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BoardDto getPostForEdit(Long id, String userId) {
+        BoardEntity entity = findPost(id);
+        checkOwner(entity.getUserId(), userId);
+        return BoardDto.builder()
+                .id(entity.getId())
+                .title(entity.getTitle())
+                .content(entity.getContent())
                 .build();
     }
 
     @Override
     @Transactional
     public void writePost(String title, String content, String userId) {
+        validatePost(title, content);
         boardRepository.save(BoardEntity.builder()
-                .title(title)
-                .content(content)
+                .title(title.trim())
+                .content(content.trim())
                 .userId(userId)
                 .build());
+    }
+
+    // save() 호출 없이 엔티티 값만 바꾸면 트랜잭션 커밋 시 변경 감지(Dirty Checking)로 UPDATE 실행
+    @Override
+    @Transactional
+    public void updatePost(Long id, String title, String content, String userId) {
+        validatePost(title, content);
+        BoardEntity entity = findPost(id);
+        checkOwner(entity.getUserId(), userId);
+        entity.update(title.trim(), content.trim());
     }
 
     @Override
     @Transactional
     public void deletePost(Long id, String userId) {
-        BoardEntity entity = boardRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
-        if (!entity.getUserId().equals(userId)) {
-            throw new IllegalStateException("삭제 권한이 없습니다.");
-        }
+        BoardEntity entity = findPost(id);
+        checkOwner(entity.getUserId(), userId);
         boardRepository.delete(entity);
     }
 
     @Override
     @Transactional
     public void addComment(Long boardId, String content, String userId) {
-        BoardEntity board = boardRepository.findById(boardId)
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+        if (content == null || content.isBlank()) {
+            throw new IllegalArgumentException("댓글 내용을 입력해주세요.");
+        }
+        if (content.trim().length() > MAX_COMMENT_LENGTH) {
+            throw new IllegalArgumentException("댓글은 " + MAX_COMMENT_LENGTH + "자 이내로 입력해주세요.");
+        }
+        BoardEntity board = findPost(boardId);
         boardCommentRepository.save(BoardCommentEntity.builder()
                 .board(board)
-                .content(content)
+                .content(content.trim())
                 .userId(userId)
                 .build());
     }
@@ -108,9 +138,30 @@ public class BoardServiceImpl implements IBoardService {
     public void deleteComment(Long commentId, String userId) {
         BoardCommentEntity comment = boardCommentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
-        if (!comment.getUserId().equals(userId)) {
-            throw new IllegalStateException("삭제 권한이 없습니다.");
-        }
+        checkOwner(comment.getUserId(), userId);
         boardCommentRepository.delete(comment);
+    }
+
+    private BoardEntity findPost(Long id) {
+        return boardRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+    }
+
+    private void checkOwner(String ownerId, String userId) {
+        if (!ownerId.equals(userId)) {
+            throw new AccessDeniedException("작성자만 수정하거나 삭제할 수 있습니다.");
+        }
+    }
+
+    private void validatePost(String title, String content) {
+        if (title == null || title.isBlank()) {
+            throw new IllegalArgumentException("제목을 입력해주세요.");
+        }
+        if (title.trim().length() > MAX_TITLE_LENGTH) {
+            throw new IllegalArgumentException("제목은 " + MAX_TITLE_LENGTH + "자 이내로 입력해주세요.");
+        }
+        if (content == null || content.isBlank()) {
+            throw new IllegalArgumentException("내용을 입력해주세요.");
+        }
     }
 }

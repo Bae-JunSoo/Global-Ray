@@ -33,6 +33,9 @@ public class BoardEntity {
     @Column(updatable = false)
     private LocalDateTime regDt;
 
+    // 조회수 증가 때는 바뀌면 안 되므로 @UpdateTimestamp 대신 update()에서만 직접 기록
+    private LocalDateTime modDt;
+
     @Column(nullable = false)
     @Builder.Default
     private int viewCount = 0;
@@ -43,5 +46,11 @@ public class BoardEntity {
 
     public void increaseViewCount() {
         this.viewCount++;
+    }
+
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+        this.modDt = LocalDateTime.now();
     }
 }

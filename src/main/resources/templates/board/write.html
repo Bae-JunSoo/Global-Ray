@@ -17,29 +17,30 @@
 <main>
     <div class="board-form-wrap">
         <div class="board-form-card">
-            <h2 class="board-form-title">글쓰기</h2>
+            <h2 class="board-form-title" th:text="${post != null} ? '글 수정' : '글쓰기'">글쓰기</h2>
             <p style="font-size:0.82rem; color:var(--text-sub); margin-bottom:20px;">
                 작성자 정보는 공개되지 않으며 익명으로 게시됩니다.
             </p>
 
-            <form th:action="@{/board/write}" method="post">
+            <form th:action="${post != null} ? @{/board/{id}/edit(id=${post.id})} : @{/board/write}" method="post">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
 
                 <div class="form-group">
                     <label for="title">제목</label>
                     <input type="text" id="title" name="title" maxlength="200"
+                           th:value="${post?.title}"
                            placeholder="제목을 입력하세요" required>
                 </div>
 
                 <div class="form-group">
                     <label for="content">내용</label>
-                    <textarea id="content" name="content"
+                    <textarea id="content" name="content" th:text="${post?.content}"
                               placeholder="내용을 입력하세요" required></textarea>
                 </div>
 
                 <div class="form-actions">
-                    <a th:href="@{/board}" class="btn-cancel">취소</a>
-                    <button type="submit" class="btn-submit">등록</button>
+                    <a th:href="${post != null} ? @{/board/{id}(id=${post.id})} : @{/board}" class="btn-cancel">취소</a>
+                    <button type="submit" class="btn-submit" th:text="${post != null} ? '수정' : '등록'">등록</button>
                 </div>
             </form>
         </div>
