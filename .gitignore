@@ -39,3 +39,5 @@ out/
 ### 민감정보 제외 ###
 src/main/resources/application.yml
 src/main/resources/application-*.yml
+# 비밀값을 YOUR_xxx로 비운 설정 예시 파일은 공유
+!src/main/resources/application-template.yml
