@@ -29,6 +29,10 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserInfoServiceImpl implements IUserInfoService {
 
+    private static final int CODE_VALID_MINUTES = 5;
+    private static final int RESEND_INTERVAL_SECONDS = 60;
+    private static final int MAX_VERIFY_ATTEMPTS = 5;
+
     private final UserInfoRepository userInfoRepository;
     private final UserBookmarkRepository userBookmarkRepository;
     private final ChatHistoryRepository chatHistoryRepository;
@@ -48,6 +52,14 @@ public class UserInfoServiceImpl implements IUserInfoService {
     @Override
     @Transactional
     public void sendEmailAuthCode(String email) throws Exception {
+        // 같은 주소로 연달아 발송하면 메일 폭탄이 되고 SMTP 계정이 차단될 수 있으므로 간격을 둠
+        emailAuthRepository.findTopByReqEmailOrderByAuthIdDesc(email).ifPresent(last -> {
+            LocalDateTime sentAt = last.getExpireDt().minusMinutes(CODE_VALID_MINUTES);
+            if (sentAt.plusSeconds(RESEND_INTERVAL_SECONDS).isAfter(LocalDateTime.now())) {
+                throw new IllegalArgumentException("인증코드는 " + RESEND_INTERVAL_SECONDS + "초 후에 다시 요청할 수 있습니다.");
+            }
+        });
+
         emailAuthRepository.deleteByReqEmail(email);
 
         // SecureRandom: 암호학적으로 안전한 난수 생성기 (java.util.Random은 예측 가능하여 보안 코드에 부적합)
@@ -57,7 +69,7 @@ public class UserInfoServiceImpl implements IUserInfoService {
                 .reqEmail(email)
                 .authCode(EncryptUtil.encHashSHA256(code))
                 .isVerified(0)
-                .expireDt(LocalDateTime.now().plusMinutes(5))
+                .expireDt(LocalDateTime.now().plusMinutes(CODE_VALID_MINUTES))
                 .build();
         emailAuthRepository.save(auth);
 
@@ -65,24 +77,26 @@ public class UserInfoServiceImpl implements IUserInfoService {
         log.info("인증코드 발송 완료 : {}", email);
     }
 
-    // verifyEmailCode 는 인증 성공 시 isVerified 를 1로 수정하고 save() 하므로 readOnly = false (기본값)
+    // 6자리 코드는 경우의 수가 100만 개뿐이라 시도 횟수를 제한하지 않으면 자동 대입으로 뚫릴 수 있음
+    // 실패 횟수는 변경 감지로 커밋 시 저장되므로 readOnly가 아닌 일반 트랜잭션
     @Override
     @Transactional
     public boolean verifyEmailCode(String email, String code) {
-        try {
-            EmailAuthEntity auth = emailAuthRepository
-                    .findTopByReqEmailOrderByAuthIdDesc(email).orElse(null);
-            if (auth == null) return false;
-            if (auth.getExpireDt().isBefore(LocalDateTime.now())) return false;
-            if (!auth.getAuthCode().equals(EncryptUtil.encHashSHA256(code))) return false;
+        EmailAuthEntity auth = emailAuthRepository
+                .findTopByReqEmailOrderByAuthIdDesc(email).orElse(null);
+        if (auth == null) return false;
+        if (auth.getExpireDt().isBefore(LocalDateTime.now())) return false;
+        if (auth.getFailCount() >= MAX_VERIFY_ATTEMPTS) {
+            throw new IllegalArgumentException("인증 시도 횟수를 초과했습니다. 인증코드를 다시 요청해주세요.");
+        }
 
-            auth.markVerified();
-            emailAuthRepository.save(auth);
-            return true;
-        } catch (Exception e) {
-            log.error("인증코드 검증 오류 : {}", e.getMessage());
+        if (!auth.getAuthCode().equals(EncryptUtil.encHashSHA256(code))) {
+            auth.increaseFailCount();
             return false;
         }
+
+        auth.markVerified();
+        return true;
     }
 
     @Override

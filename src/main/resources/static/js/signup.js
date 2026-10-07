@@ -76,7 +76,7 @@ async function verifyCode() {
             showMsg(msg, '이메일 인증이 완료되었습니다.', true);
             document.getElementById('submitBtn').disabled = false;
         } else {
-            showMsg(msg, '인증코드가 올바르지 않거나 만료되었습니다.', false);
+            showMsg(msg, data.message || '인증코드가 올바르지 않거나 만료되었습니다.', false);
         }
     } finally {
         btn.disabled    = false;
