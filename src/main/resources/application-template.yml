@@ -1,0 +1,80 @@
+spring:
+  application:
+    name: GlobalRay
+
+  # MariaDB 설정
+  datasource:
+    url: jdbc:mariadb://YOUR_DB_HOST:3306/globalray?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: YOUR_DB_USERNAME
+    password: YOUR_DB_PASSWORD
+    driver-class-name: org.mariadb.jdbc.Driver
+
+  # JPA 설정
+  jpa:
+    hibernate:
+      ddl-auto: update
+    # 운영 서버에서는 끔: 모든 SQL이 로그에 찍혀 로그가 빠르게 커지고 성능이 떨어짐
+    # (로컬에서 쿼리를 확인할 때만 true로 변경)
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDBDialect
+
+  # MongoDB 설정
+  data:
+    mongodb:
+      uri: mongodb://YOUR_MONGO_HOST:27017/MyDB
+
+  # 메일 설정 (네이버 SMTP)
+  mail:
+    host: smtp.naver.com
+    port: 465
+    username: YOUR_NAVER_EMAIL
+    password: YOUR_NAVER_SMTP_PASSWORD
+    protocol: smtps
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+          starttls:
+            enable: false
+
+  # Google OAuth2 설정
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: YOUR_GOOGLE_CLIENT_ID
+            client-secret: YOUR_GOOGLE_CLIENT_SECRET
+            scope:
+              - email
+              - profile
+
+server:
+  port: 11000
+
+# 이 이메일로 로그인한 계정에 관리자 권한(ROLE_ADMIN) 부여
+app:
+  admin-email: YOUR_ADMIN_EMAIL
+
+api:
+  news:
+    key: YOUR_NEWS_API_KEY
+    url: https://newsapi.org/v2/top-headlines
+  gemini:
+    key: YOUR_GEMINI_API_KEY_1
+    key2: YOUR_GEMINI_API_KEY_2
+    url: https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent
+
+scheduler:
+  news:
+    cron: "0 0 */2 * * *"
+
+# 운영 서버는 INFO: DEBUG 로그에는 요청 세부 정보가 남을 수 있어 보안상 불리하고 로그 양도 많음
+logging:
+  level:
+    kopo.poly.globalray: INFO
+    org.springframework.security: INFO
