@@ -7,6 +7,7 @@ import kopo.poly.globalray.service.IUserInfoService;
 import kopo.poly.globalray.util.CmmUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -92,26 +93,37 @@ public class AuthController {
     }
 
     // 이메일 인증코드 발송 (Ajax)
+    // 사용자가 고칠 수 있는 오류(재발송 간격 등)만 메시지를 그대로 보여주고,
+    // 메일 서버 오류 같은 내부 예외 메시지는 화면에 노출하지 않고 로그로만 남김
     @PostMapping("/api/send-code")
     @ResponseBody
     public ResponseEntity<Map<String, String>> sendCode(@RequestBody Map<String, String> body) {
+        String email = CmmUtil.nvl(body.get("email"));
         try {
-            userInfoService.sendEmailAuthCode(CmmUtil.nvl(body.get("email")));
+            userInfoService.sendEmailAuthCode(email);
             return ResponseEntity.ok(Map.of("message", "인증코드가 발송되었습니다."));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("message", "발송 실패 : " + e.getMessage()));
+            log.error("인증코드 발송 실패 - email: {}", email, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "인증코드 발송에 실패했습니다. 잠시 후 다시 시도해주세요."));
         }
     }
 
     // 이메일 인증코드 검증 (Ajax)
     @PostMapping("/api/verify-code")
     @ResponseBody
-    public ResponseEntity<Map<String, Boolean>> verifyCode(@RequestBody Map<String, String> body) {
-        boolean verified = userInfoService.verifyEmailCode(
-                CmmUtil.nvl(body.get("email")),
-                CmmUtil.nvl(body.get("code"))
-        );
-        return ResponseEntity.ok(Map.of("verified", verified));
+    public ResponseEntity<Map<String, Object>> verifyCode(@RequestBody Map<String, String> body) {
+        try {
+            boolean verified = userInfoService.verifyEmailCode(
+                    CmmUtil.nvl(body.get("email")),
+                    CmmUtil.nvl(body.get("code"))
+            );
+            return ResponseEntity.ok(Map.of("verified", verified));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.ok(Map.of("verified", false, "message", e.getMessage()));
+        }
     }
 
     // 아이디 찾기 페이지
@@ -159,7 +171,8 @@ public class AuthController {
                 model.addAttribute("errorMsg", "일치하는 회원 정보가 없습니다.");
             }
         } catch (Exception e) {
-            model.addAttribute("errorMsg", e.getMessage());
+            log.error("임시 비밀번호 발급 실패 - userId: {}", userId, e);
+            model.addAttribute("errorMsg", "임시 비밀번호 발송에 실패했습니다. 잠시 후 다시 시도해주세요.");
         }
         return "auth/find-pw";
     }

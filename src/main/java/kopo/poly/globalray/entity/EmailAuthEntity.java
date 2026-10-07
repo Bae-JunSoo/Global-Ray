@@ -29,8 +29,17 @@ public class EmailAuthEntity {
     @Column(name = "EXPIRE_DT", nullable = false)
     private LocalDateTime expireDt;
 
+    // 기존 행이 있는 테이블에 컬럼이 추가되므로 DB 기본값 0을 함께 지정
+    @Builder.Default
+    @Column(name = "FAIL_COUNT", nullable = false, columnDefinition = "INT NOT NULL DEFAULT 0")
+    private int failCount = 0;
+
     // Setter 대신 의미 있는 메서드로 변경
     public void markVerified() {
         this.isVerified = 1;
+    }
+
+    public void increaseFailCount() {
+        this.failCount++;
     }
 }
