@@ -41,6 +41,11 @@ public interface NewsArticleRepository extends MongoRepository<NewsArticleEntity
     @Update("{ '$inc': { 'VIEW_COUNT': 1 } }")
     void increaseViewCount(String articleId);
 
+    // 상세 요약만 저장 (save()로 문서 전체를 덮어쓰면 그 사이 바뀐 조회수·좋아요 수가 사라짐)
+    @Query("{ '_id': ?0 }")
+    @Update("{ '$set': { 'SUMMARY_KOR': ?1 } }")
+    void updateSummaryKor(String articleId, String summaryKor);
+
     @Query("{ 'URL': ?0 }")
     @Update("{ '$inc': { 'LIKE_COUNT': 1 } }")
     void increaseLikeCount(String articleUrl);

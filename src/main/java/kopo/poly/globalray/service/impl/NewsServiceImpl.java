@@ -68,9 +68,9 @@ public class NewsServiceImpl implements INewsService {
     }
 
     // 조회수 증가 → 상세 조회(필요 시 요약 생성) → 열람 이력 저장을 한 흐름으로 처리
-    // 트랜잭션은 MariaDB의 북마크·좋아요 조회에만 적용되고, MongoDB 쓰기는 연산 하나하나가 원자적으로 처리됨
+    // 처음 열람 시 수 초 걸리는 Gemini 호출이 있어 DB 커넥션을 잡지 않도록 트랜잭션 미적용 (챗봇 ask()와 같은 원칙)
+    // MongoDB 쓰기는 연산 하나하나가 원자적으로 처리되고, MariaDB는 북마크·좋아요 조회만 하므로 묶을 필요가 없음
     @Override
-    @Transactional
     public NewsDto viewArticle(String articleId, String loginUserId) {
         // 상세 화면에 증가된 조회수가 보이도록 먼저 증가시킴 ($inc는 없는 기사면 아무 일도 하지 않음)
         newsArticleRepository.increaseViewCount(articleId);
@@ -145,7 +145,8 @@ public class NewsServiceImpl implements INewsService {
 
             if (summaryKor != null && !summaryKor.isBlank()) {
                 entity.updateSummaryKor(summaryKor.trim());
-                newsArticleRepository.save(entity);
+                // save()는 문서 전체를 덮어써서 AI 호출 중에 오른 조회수·좋아요 수가 사라지므로 요약 필드만 $set으로 저장
+                newsArticleRepository.updateSummaryKor(entity.getArticleId(), entity.getSummaryKor());
                 log.info("상세 요약 생성 완료 : {}", entity.getTitleKor());
             }
         } catch (Exception e) {
