@@ -70,8 +70,13 @@ public class AuthController {
             userInfoService.signup(dto);
             return "redirect:/auth/login?signup=success";
 
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
+            // 중복 아이디·이메일, 인증 미완료처럼 사용자가 고칠 수 있는 오류만 메시지를 그대로 보여줌
             model.addAttribute("errorMsg", e.getMessage());
+            return "auth/signup";
+        } catch (Exception e) {
+            log.error("회원가입 실패 - userId: {}", request.getUserId(), e);
+            model.addAttribute("errorMsg", "회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.");
             return "auth/signup";
         }
     }

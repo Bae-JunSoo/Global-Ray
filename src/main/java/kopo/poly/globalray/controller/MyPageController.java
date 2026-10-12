@@ -30,6 +30,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MyPageController {
 
+    private static final int MIN_PASSWORD_LENGTH = 8;
+
     private final IUserInfoService userInfoService;
     private final INewsService newsService;
 
@@ -96,6 +98,11 @@ public class MyPageController {
                 model.addAttribute("errorMsg", "새 비밀번호가 일치하지 않습니다.");
                 return "mypage/change-pw";
             }
+            // 회원가입(SignupRequest)과 같은 기준: 8자 이상
+            if (newPw.length() < MIN_PASSWORD_LENGTH) {
+                model.addAttribute("errorMsg", "새 비밀번호는 " + MIN_PASSWORD_LENGTH + "자 이상 입력해주세요.");
+                return "mypage/change-pw";
+            }
             boolean result = userInfoService.changePassword(
                     SecurityUtil.extractUserId(principal),
                     CmmUtil.nvl(currentPw),
@@ -108,7 +115,8 @@ public class MyPageController {
                 return "mypage/change-pw";
             }
         } catch (Exception e) {
-            model.addAttribute("errorMsg", e.getMessage());
+            log.error("비밀번호 변경 실패 - userId: {}", SecurityUtil.extractUserId(principal), e);
+            model.addAttribute("errorMsg", "비밀번호 변경에 실패했습니다. 잠시 후 다시 시도해주세요.");
             return "mypage/change-pw";
         }
     }
