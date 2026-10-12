@@ -26,7 +26,7 @@
             </li>
         </ul>
 
-        <select id="countrySelectNav" onchange="goToCountry(this.value)"
+        <select id="countrySelectNav" data-action="change-country"
                 style="padding:5px 28px 5px 10px; border:1.5px solid #d1d5db;
                        border-radius:6px; font-size:13px; font-weight:500; cursor:pointer;
                        background:#fff; appearance:none; color:#374151; min-width:100px;">
@@ -125,21 +125,13 @@
         <a th:href="@{/news/top10}" style="color:#e74c3c; font-weight:700;">🔥 TOP 10</a>
         <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}" style="color:#7c3aed; font-weight:700;">관리자</a>
 
-        <select id="countrySelect" onchange="goToCountry(this.value)" class="country-select-nav">
+        <select id="countrySelect" data-action="change-country" class="country-select-nav">
             <option value="ALL" th:selected="${currentCountry == null or currentCountry == 'ALL'}">🌐 전체</option>
             <option value="US"  th:selected="${currentCountry == 'US'}">🇺🇸 미국</option>
             <option value="EU"  th:selected="${currentCountry == 'EU'}">🇪🇺 유럽</option>
             <option value="JP"  th:selected="${currentCountry == 'JP'}">🇯🇵 일본</option>
         </select>
     </nav>
-    <script>
-    function goToCountry(value) {
-        const url = new URL(window.location.href);
-        url.searchParams.set('country', value);
-        url.searchParams.set('page', '0');
-        window.location.href = url.toString();
-    }
-    </script>
 </header>
 
 </body>

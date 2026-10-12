@@ -45,6 +45,7 @@ public class NewsController {
 
         model.addAttribute("newsList", newsPage.getContent());
         model.addAttribute("catType", catType);
+        model.addAttribute("currentCat", catType);  // navbar의 선택 표시(active) 비교용
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", newsPage.getTotalPages());
         model.addAttribute("currentCountry", country);

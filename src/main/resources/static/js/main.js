@@ -88,6 +88,25 @@ document.addEventListener('click', function(e) {
     }
 });
 
+/* ===== 국가 필터 ===== */
+// navbar와 메인 헤더 두 곳의 국가 선택이 함께 쓰므로 모든 화면에서 로드되는 main.js에 둠
+document.addEventListener('change', function(e) {
+    const target = e.target.closest('[data-action="change-country"]');
+    if (target) goToCountry(target.value);
+});
+
+function goToCountry(value) {
+    const path = window.location.pathname;
+    const isNewsList = path === '/' || path === '/main'
+        || (path.startsWith('/news/') && !path.startsWith('/news/detail') && path !== '/news/top10');
+
+    // 목록 화면은 현재 카테고리를 유지하고, 상세·게시판 등 다른 화면에서는 메인 목록으로 이동
+    const url = isNewsList ? new URL(window.location.href) : new URL('/main', window.location.origin);
+    url.searchParams.set('country', value);
+    url.searchParams.set('page', '0');
+    window.location.href = url.toString();
+}
+
 /* ===== 회원 탈퇴 처리 ===== */
 async function handleDeleteAccount() {
     const ok = await showConfirm('정말 탈퇴하시겠습니까?\n모든 데이터가 삭제되며 복구할 수 없습니다.');
